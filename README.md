@@ -7,14 +7,16 @@ A repository containing tools and configurations to set up projects for AI-assis
 To set up AI development tools in your repository, run this command from your project root:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Pr0j3c7t0dd-Ltd/ai-dev-setup/main/scripts/setup-ai-dev.sh)"
+bash -c "$(curl -fsSL https://gist.githubusercontent.com/pr0j3c7t0dd/0b1d8d820e9357bae7ccc4938eba56e8/raw/setup-ai-dev.sh)"
 ```
 
 Or if you prefer wget:
 
 ```bash
-bash -c "$(wget -qO- https://raw.githubusercontent.com/Pr0j3c7t0dd-Ltd/ai-dev-setup/main/scripts/setup-ai-dev.sh)"
+bash -c "$(wget -qO- https://gist.githubusercontent.com/pr0j3c7t0dd/0b1d8d820e9357bae7ccc4938eba56e8/raw/setup-ai-dev.sh)"
 ```
+
+> **Note**: This script is hosted as a public GitHub Gist while the main repository remains private. See [create-gist-instructions.md](scripts/create-gist-instructions.md) for setup details.
 
 ## What This Does
 
