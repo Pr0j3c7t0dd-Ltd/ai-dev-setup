@@ -2,7 +2,7 @@
 
 set -e
 
-REPO_URL="https://github.com/todd/ai-dev-setup"
+REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
 
 echo "🤖 AI Development Setup Script"
