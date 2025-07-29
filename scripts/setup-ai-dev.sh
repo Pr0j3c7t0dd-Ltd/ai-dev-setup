@@ -107,9 +107,9 @@ if [ -f ".raw-ai-hooks/hooks.json" ]; then
     echo "✅ Hooks configuration copied to .claude/hooks/"
 fi
 
-if [ -f ".raw-ai-agents/agent-strict-code-linter.md" ]; then
-    cp .raw-ai-agents/agent-strict-code-linter.md .claude/agents/
-    echo "✅ strict-code-linter agent copied to .claude/agents/"
+if [ -d ".raw-ai-agents" ]; then
+    cp -r .raw-ai-agents/* .claude/agents/
+    echo "✅ All agents copied to .claude/agents/"
 fi
 
 echo ""
