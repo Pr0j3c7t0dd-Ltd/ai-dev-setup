@@ -16,8 +16,8 @@ fi
 
 echo "📋 This script will set up your repository for AI development by:"
 echo "  - Optionally setting up a .devcontainer"
-echo "  - Copying AI rules, prompts, hooks, and agents"
-echo "  - Setting up .claude directory with hooks and agents"
+echo "  - Copying AI rules, prompts, hooks, agents, and commands"
+echo "  - Setting up .claude directory with hooks, agents, and commands"
 echo "  - Copying helper scripts"
 echo "  - Optionally adding a product requirements submodule"
 echo ""
@@ -99,8 +99,16 @@ else
     echo "⚠️  Warning: .raw-ai-agents folder not found in repository"
 fi
 
+echo "📋 Copying .raw-ai-commands folder..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-commands" ]; then
+    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-commands" .
+    echo "✅ .raw-ai-commands copied (slash commands)"
+else
+    echo "⚠️  Warning: .raw-ai-commands folder not found in repository"
+fi
+
 echo "🔧 Setting up .claude directory structure..."
-mkdir -p .claude/hooks .claude/agents
+mkdir -p .claude/hooks .claude/agents .claude/commands
 
 if [ -f ".raw-ai-hooks/hooks.json" ]; then
     cp .raw-ai-hooks/hooks.json .claude/hooks/
@@ -110,6 +118,11 @@ fi
 if [ -d ".raw-ai-agents" ]; then
     cp -r .raw-ai-agents/* .claude/agents/
     echo "✅ All agents copied to .claude/agents/"
+fi
+
+if [ -d ".raw-ai-commands" ]; then
+    cp -r .raw-ai-commands/* .claude/commands/
+    echo "✅ All slash commands copied to .claude/commands/"
 fi
 
 echo ""
@@ -133,9 +146,9 @@ echo ""
 echo "🎉 AI development setup complete!"
 echo ""
 echo "📝 Next steps:"
-echo "  1. Review the contents of .raw-ai-rules, .raw-ai-prompts, .raw-ai-hooks, and .raw-ai-agents"
-echo "  2. Customize the rules, prompts, hooks, and agents for your project"
-echo "  3. The .claude directory has been set up with hooks and agents"
+echo "  1. Review the contents of .raw-ai-rules, .raw-ai-prompts, .raw-ai-hooks, .raw-ai-agents, and .raw-ai-commands"
+echo "  2. Customize the rules, prompts, hooks, agents, and slash commands for your project"
+echo "  3. The .claude directory has been set up with hooks, agents, and commands"
 echo "  4. The strict-code-linter agent and hook are configured to run after file updates"
 echo "  5. If you set up a .devcontainer, rebuild your container"
 echo ""
