@@ -1,0 +1,7 @@
+{
+  "PostToolUse": [
+    {
+      "command": "/strict-code-linter $FILE_PATH"
+    }
+  ]
+}
