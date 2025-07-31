@@ -207,13 +207,17 @@ try:
     if not pulse_exists:
         config['runArgs'].extend(pulse_env)
     
-    # Add or update mounts
-    x11_mount = "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
-    if 'mounts' not in config:
-        config['mounts'] = []
-    
-    if x11_mount not in config['mounts']:
-        config['mounts'].append(x11_mount)
+    # Add or update mounts - only add X11 mount if the directory exists
+    if os.path.exists('/tmp/.X11-unix'):
+        x11_mount = "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+        if 'mounts' not in config:
+            config['mounts'] = []
+        
+        if x11_mount not in config['mounts']:
+            config['mounts'].append(x11_mount)
+            print("✅ Added X11 mount for display forwarding")
+    else:
+        print("ℹ️  Skipping X11 mount - /tmp/.X11-unix not found (normal on macOS without XQuartz)")
     
     # Write the updated config back
     with open(devcontainer_path, 'w') as f:
