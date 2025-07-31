@@ -3,7 +3,7 @@
 set -e
 
 # Version number for the setup script
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.0.2"
 
 REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
@@ -113,22 +113,55 @@ apt-get update && apt-get install -y \
     libsox-fmt-all \
     mpg123 \
     ffmpeg \
-    alsa-utils
+    alsa-utils \
+    bc
 EOF
             chmod +x .devcontainer/audio-setup/install-audio-tools.sh
             
-            # Create the afplay wrapper script
+            # Create the universal afplay wrapper script
             cat > .devcontainer/audio-setup/afplay << 'EOF'
 #!/bin/bash
-# afplay wrapper for Linux containers
-# Mimics macOS afplay command using paplay/sox
+# Universal afplay wrapper - works on macOS and Linux
+# On macOS: uses native afplay
+# On Linux: uses paplay/sox/mpg123
 
 if [ $# -eq 0 ]; then
-    echo "Usage: afplay <audiofile>"
+    echo "Usage: afplay <audiofile> [options]"
     exit 1
 fi
 
-FILE="$1"
+# Check if we're on macOS and have native afplay
+if [[ "$OSTYPE" == "darwin"* ]] && command -v /usr/bin/afplay &> /dev/null; then
+    # Use native macOS afplay
+    exec /usr/bin/afplay "$@"
+fi
+
+# Linux/container environment - parse arguments
+FILE=""
+VOLUME=""
+ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --volume|-v)
+            VOLUME="$2"
+            shift 2
+            ;;
+        *)
+            if [ -z "$FILE" ]; then
+                FILE="$1"
+            else
+                ARGS+=("$1")
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$FILE" ]; then
+    echo "Error: No audio file specified"
+    exit 1
+fi
 
 if [ ! -f "$FILE" ]; then
     echo "Error: File not found: $FILE"
@@ -139,24 +172,46 @@ fi
 EXT="${FILE##*.}"
 EXT_LOWER=$(echo "$EXT" | tr '[:upper:]' '[:lower:]')
 
+# Set volume for Linux audio players (0.0 to 1.0 scale)
+if [ -n "$VOLUME" ]; then
+    # Convert volume to percentage for some players
+    VOL_PERCENT=$(echo "$VOLUME * 100" | bc | cut -d. -f1)
+fi
+
 # Try to play using paplay for WAV files
-if [ "$EXT_LOWER" = "wav" ]; then
+if [ "$EXT_LOWER" = "wav" ] || [ "$EXT_LOWER" = "aiff" ]; then
     if command -v paplay &> /dev/null; then
-        paplay "$FILE"
+        if [ -n "$VOLUME" ]; then
+            paplay --volume=$(echo "$VOLUME * 65536" | bc | cut -d. -f1) "$FILE"
+        else
+            paplay "$FILE"
+        fi
     elif command -v aplay &> /dev/null; then
         aplay "$FILE"
     else
-        echo "Error: No audio player found for WAV files"
+        echo "Error: No audio player found for WAV/AIFF files"
         exit 1
     fi
 else
     # For other formats, use sox or mpg123
     if command -v play &> /dev/null; then
-        play "$FILE" 2>/dev/null
+        if [ -n "$VOLUME" ]; then
+            play -v "$VOLUME" "$FILE" 2>/dev/null
+        else
+            play "$FILE" 2>/dev/null
+        fi
     elif [ "$EXT_LOWER" = "mp3" ] && command -v mpg123 &> /dev/null; then
-        mpg123 -q "$FILE"
+        if [ -n "$VOL_PERCENT" ]; then
+            mpg123 -q -f $(echo "$VOL_PERCENT * 327" | bc | cut -d. -f1) "$FILE"
+        else
+            mpg123 -q "$FILE"
+        fi
     elif command -v ffplay &> /dev/null; then
-        ffplay -nodisp -autoexit "$FILE" 2>/dev/null
+        if [ -n "$VOLUME" ]; then
+            ffplay -nodisp -autoexit -volume "$VOL_PERCENT" "$FILE" 2>/dev/null
+        else
+            ffplay -nodisp -autoexit "$FILE" 2>/dev/null
+        fi
     else
         echo "Error: No suitable audio player found for $EXT files"
         exit 1
