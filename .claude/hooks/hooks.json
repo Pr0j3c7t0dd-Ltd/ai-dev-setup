@@ -10,7 +10,7 @@
       ]
     }
   ],
-  "PostRun": [
+  "Stop": [
     {
       "matcher": "*",
       "hooks": [

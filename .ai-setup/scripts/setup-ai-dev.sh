@@ -106,32 +106,39 @@ if [[ "$ADD_SUBMODULE" =~ ^[Yy]$ ]]; then
     
     if [ -n "$SUBMODULE_URL" ]; then
         echo "➕ Adding product requirements submodule..."
-        git submodule add "$SUBMODULE_URL" product-requirements || {
+        git submodule add "$SUBMODULE_URL" || {
             echo "⚠️  Warning: Failed to add submodule. It may already exist or the URL may be invalid."
         }
         git submodule update --init --recursive
-        echo "✅ Product requirements submodule added"
         
-        # Replace [PRODUCT_REQS_VAULT_DIR] placeholder with actual path
-        echo "🔄 Updating references to product requirements directory..."
-        PRODUCT_REQS_PATH="$(pwd)/product-requirements"
+        # Find the actual directory name created by git submodule
+        SUBMODULE_DIR=$(git submodule status | grep -E "^[-+ ]" | awk '{print $2}' | tail -n 1)
         
-        # Find and replace in all files
-        find . -type f -name "*.md" -o -name "*.txt" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" | while read -r file; do
-            if grep -q "\[PRODUCT_REQS_VAULT_DIR\]" "$file" 2>/dev/null; then
-                # Use sed to replace the placeholder
-                if [[ "$OSTYPE" == "darwin"* ]]; then
-                    # macOS sed requires backup extension
-                    sed -i '' "s|\[PRODUCT_REQS_VAULT_DIR\]|$PRODUCT_REQS_PATH|g" "$file"
-                else
-                    # Linux sed
-                    sed -i "s|\[PRODUCT_REQS_VAULT_DIR\]|$PRODUCT_REQS_PATH|g" "$file"
+        if [ -n "$SUBMODULE_DIR" ]; then
+            echo "✅ Product requirements submodule added as: $SUBMODULE_DIR"
+            
+            # Replace [PRODUCT_REQS_VAULT_DIR] placeholder with relative path
+            echo "🔄 Updating references to product requirements directory..."
+            
+            # Find and replace in all files
+            find . -type f -name "*.md" -o -name "*.txt" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" | while read -r file; do
+                if grep -q "\[PRODUCT_REQS_VAULT_DIR\]" "$file" 2>/dev/null; then
+                    # Use sed to replace the placeholder
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        # macOS sed requires backup extension
+                        sed -i '' "s|\[PRODUCT_REQS_VAULT_DIR\]|$SUBMODULE_DIR|g" "$file"
+                    else
+                        # Linux sed
+                        sed -i "s|\[PRODUCT_REQS_VAULT_DIR\]|$SUBMODULE_DIR|g" "$file"
+                    fi
+                    echo "  ✅ Updated: $file"
                 fi
-                echo "  ✅ Updated: $file"
-            fi
-        done
-        
-        echo "✅ Product requirements path references updated"
+            done
+            
+            echo "✅ Product requirements path references updated"
+        else
+            echo "⚠️  Warning: Could not determine submodule directory name"
+        fi
     else
         echo "⚠️  No URL provided, skipping submodule addition"
     fi

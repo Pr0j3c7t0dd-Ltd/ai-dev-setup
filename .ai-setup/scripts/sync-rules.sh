@@ -6,9 +6,12 @@ CUR=".cursor/rules"
 WIN=".windsurf/rules"
 CLAUDE="CLAUDE.md"
 
+echo "📁 Creating directories if they don't exist..."
+mkdir -p "$CUR" "$WIN"
+
 echo "🧹 Cleaning target directories..."
-find "$CUR" -mindepth 1 -exec rm -rf {} +
-find "$WIN" -mindepth 1 -exec rm -rf {} +
+find "$CUR" -mindepth 1 -exec rm -rf {} + 2>/dev/null || true
+find "$WIN" -mindepth 1 -exec rm -rf {} + 2>/dev/null || true
 
 echo "📁 Preparing directories..."
 mkdir -p "$CUR" "$WIN/tmp"
