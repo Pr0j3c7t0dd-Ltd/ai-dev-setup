@@ -45,6 +45,151 @@ if [[ "$SETUP_DEVCONTAINER" =~ ^[Yy]$ ]]; then
     fi
     
     rm -rf temp-claude-code
+    
+    # Ask about PulseAudio installation for audio passthrough
+    echo ""
+    read -p "🔊 Would you like to install PulseAudio for audio passthrough from the devcontainer? (y/n): " SETUP_PULSEAUDIO
+    if [[ "$SETUP_PULSEAUDIO" =~ ^[Yy]$ ]]; then
+        echo "⚙️  Setting up audio passthrough for .devcontainer..."
+        
+        # Check if running on macOS
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # Check if PulseAudio is installed
+            if ! command -v pulseaudio &> /dev/null; then
+                echo "📦 Installing PulseAudio via Homebrew..."
+                if command -v brew &> /dev/null; then
+                    brew install pulseaudio
+                    echo "✅ PulseAudio installed"
+                    
+                    # Start PulseAudio daemon with network module
+                    echo "🔊 Starting PulseAudio daemon with network support..."
+                    # Kill any existing PulseAudio instances first
+                    pulseaudio --kill 2>/dev/null || true
+                    sleep 1
+                    # Start with TCP module for network audio
+                    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon
+                    sleep 2
+                    # Load anonymous auth module
+                    pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
+                    echo "✅ PulseAudio daemon started with network audio enabled"
+                else
+                    echo "⚠️  Homebrew not found. Please install PulseAudio manually:"
+                    echo "    brew install pulseaudio"
+                fi
+            else
+                echo "✅ PulseAudio already installed"
+                # Check if daemon is running
+                if ! pgrep -x pulseaudio > /dev/null; then
+                    echo "🔊 Starting PulseAudio daemon with network support..."
+                    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon
+                    sleep 2
+                    pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
+                    echo "✅ PulseAudio daemon started"
+                else
+                    echo "✅ PulseAudio daemon already running"
+                    # Ensure network module is loaded
+                    if ! pactl list modules | grep -q "module-native-protocol-tcp"; then
+                        echo "🔊 Loading network audio module..."
+                        pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
+                        echo "✅ Network audio module loaded"
+                    fi
+                fi
+            fi
+            
+            # Create audio setup scripts
+            echo "📝 Creating audio configuration scripts..."
+            mkdir -p .devcontainer/audio-setup
+            
+            # Create the install-audio-tools.sh script
+            cat > .devcontainer/audio-setup/install-audio-tools.sh << 'EOF'
+#!/bin/bash
+# Install audio tools in the container
+apt-get update && apt-get install -y \
+    pulseaudio-utils \
+    sox \
+    libsox-fmt-all \
+    mpg123 \
+    ffmpeg \
+    alsa-utils
+EOF
+            chmod +x .devcontainer/audio-setup/install-audio-tools.sh
+            
+            # Create the afplay wrapper script
+            cat > .devcontainer/audio-setup/afplay << 'EOF'
+#!/bin/bash
+# afplay wrapper for Linux containers
+# Mimics macOS afplay command using paplay/sox
+
+if [ $# -eq 0 ]; then
+    echo "Usage: afplay <audiofile>"
+    exit 1
+fi
+
+FILE="$1"
+
+if [ ! -f "$FILE" ]; then
+    echo "Error: File not found: $FILE"
+    exit 1
+fi
+
+# Get file extension
+EXT="${FILE##*.}"
+EXT_LOWER=$(echo "$EXT" | tr '[:upper:]' '[:lower:]')
+
+# Try to play using paplay for WAV files
+if [ "$EXT_LOWER" = "wav" ]; then
+    if command -v paplay &> /dev/null; then
+        paplay "$FILE"
+    elif command -v aplay &> /dev/null; then
+        aplay "$FILE"
+    else
+        echo "Error: No audio player found for WAV files"
+        exit 1
+    fi
+else
+    # For other formats, use sox or mpg123
+    if command -v play &> /dev/null; then
+        play "$FILE" 2>/dev/null
+    elif [ "$EXT_LOWER" = "mp3" ] && command -v mpg123 &> /dev/null; then
+        mpg123 -q "$FILE"
+    elif command -v ffplay &> /dev/null; then
+        ffplay -nodisp -autoexit "$FILE" 2>/dev/null
+    else
+        echo "Error: No suitable audio player found for $EXT files"
+        exit 1
+    fi
+fi
+EOF
+            chmod +x .devcontainer/audio-setup/afplay
+            
+            # Update devcontainer.json to include audio setup
+            if [ -f ".devcontainer/devcontainer.json" ]; then
+                echo "📝 Updating devcontainer.json for audio support..."
+                # This is a simple approach - in production you'd want to parse JSON properly
+                echo ""
+                echo "⚠️  Please manually add the following to your .devcontainer/devcontainer.json:"
+                echo ""
+                echo '  "postCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/",'
+                echo ""
+                echo '  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],'
+                echo ""
+                echo '  "mounts": ["source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"],'
+                echo ""
+            fi
+            
+            echo "✅ Audio passthrough setup complete"
+            echo ""
+            echo "📝 PulseAudio daemon has been started with network audio support"
+            echo ""
+            echo "ℹ️  If you need to restart PulseAudio manually:"
+            echo "    pulseaudio --kill"
+            echo "    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon"
+            echo "    pactl load-module module-native-protocol-tcp auth-anonymous=1"
+            echo ""
+        else
+            echo "⚠️  Audio passthrough setup is currently only supported on macOS"
+        fi
+    fi
 fi
 
 echo ""
