@@ -3,7 +3,7 @@
 set -e
 
 # Version number for the setup script
-SCRIPT_VERSION="1.0.4"
+SCRIPT_VERSION="1.0.5"
 
 REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
@@ -388,6 +388,19 @@ if [ -f ".ai-setup/ide/claude/settings.json" ]; then
         if [ -f ".ai-setup/ide/claude/settings-devcontainer.json" ]; then
             cp .ai-setup/ide/claude/settings-devcontainer.json .claude/settings.json
             echo "✅ settings-devcontainer.json copied to .claude/settings.json (container environment detected)"
+            
+            # If we're in a container and afplay isn't in PATH, create a symlink
+            if ! command -v afplay &> /dev/null && [ -f ".ai-setup/scripts/afplay" ]; then
+                echo "🔧 Creating afplay symlink for container environment..."
+                if [ -w "/usr/local/bin" ]; then
+                    ln -sf "$(pwd)/.ai-setup/scripts/afplay" /usr/local/bin/afplay
+                    echo "✅ afplay symlink created in /usr/local/bin/"
+                else
+                    echo "⚠️  Cannot create symlink in /usr/local/bin/ (no write permission)"
+                    echo "   You may need to rebuild the container or run:"
+                    echo "   sudo ln -sf $(pwd)/.ai-setup/scripts/afplay /usr/local/bin/afplay"
+                fi
+            fi
         else
             cp .ai-setup/ide/claude/settings.json .claude/
             echo "✅ settings.json copied to .claude directory"
@@ -465,6 +478,10 @@ echo "  2. The .claude directory has been set up with agents, commands, and sett
 echo "  3. Scripts are available in .ai-setup/scripts/ (executable)"
 echo "  4. AI rules have been synced to .cursor, .windsurf, and CLAUDE.md"
 echo "  5. Customize the rules, prompts, agents, and slash commands in .ai-setup"
-echo "  6. If you set up a .devcontainer, rebuild your container"
+if [ -f "/.dockerenv" ] || [ -n "$DEVCONTAINER" ] || [ -n "$CODESPACES" ]; then
+    echo "  6. ⚠️  If audio isn't working, rebuild your container to install audio tools"
+else
+    echo "  6. If you set up a .devcontainer, rebuild your container"
+fi
 echo ""
 echo "💡 Tip: Consider committing these changes to your repository"
