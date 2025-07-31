@@ -165,16 +165,76 @@ EOF
             # Update devcontainer.json to include audio setup
             if [ -f ".devcontainer/devcontainer.json" ]; then
                 echo "📝 Updating devcontainer.json for audio support..."
-                # This is a simple approach - in production you'd want to parse JSON properly
-                echo ""
-                echo "⚠️  Please manually add the following to your .devcontainer/devcontainer.json:"
-                echo ""
-                echo '  "postCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/",'
-                echo ""
-                echo '  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],'
-                echo ""
-                echo '  "mounts": ["source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"],'
-                echo ""
+                
+                # Create a backup of the original file
+                cp .devcontainer/devcontainer.json .devcontainer/devcontainer.json.backup
+                
+                # Use Python to properly update the JSON file
+                python3 << 'PYTHON_EOF'
+import json
+import os
+
+devcontainer_path = '.devcontainer/devcontainer.json'
+
+try:
+    with open(devcontainer_path, 'r') as f:
+        config = json.load(f)
+    
+    # Add or update postCreateCommand
+    post_create_cmd = "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/"
+    
+    if 'postCreateCommand' in config:
+        # If there's already a postCreateCommand, append to it
+        if isinstance(config['postCreateCommand'], str):
+            config['postCreateCommand'] = config['postCreateCommand'] + " && " + post_create_cmd
+        elif isinstance(config['postCreateCommand'], list):
+            config['postCreateCommand'].append(post_create_cmd)
+    else:
+        config['postCreateCommand'] = post_create_cmd
+    
+    # Add or update runArgs
+    pulse_env = ["--env", "PULSE_SERVER=host.docker.internal"]
+    if 'runArgs' not in config:
+        config['runArgs'] = []
+    
+    # Check if PULSE_SERVER env is already set
+    pulse_exists = False
+    for i in range(0, len(config['runArgs'])-1):
+        if config['runArgs'][i] == "--env" and config['runArgs'][i+1].startswith("PULSE_SERVER="):
+            pulse_exists = True
+            break
+    
+    if not pulse_exists:
+        config['runArgs'].extend(pulse_env)
+    
+    # Add or update mounts
+    x11_mount = "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+    if 'mounts' not in config:
+        config['mounts'] = []
+    
+    if x11_mount not in config['mounts']:
+        config['mounts'].append(x11_mount)
+    
+    # Write the updated config back
+    with open(devcontainer_path, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    print("✅ devcontainer.json updated successfully")
+    
+except json.JSONDecodeError:
+    print("⚠️  Error: devcontainer.json is not valid JSON")
+    print("Please check the file and manually add the audio configuration")
+except Exception as e:
+    print(f"⚠️  Error updating devcontainer.json: {e}")
+    print("Please manually add the following to your .devcontainer/devcontainer.json:")
+    print('  "postCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/",')
+    print('  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],')
+    print('  "mounts": ["source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"],')
+PYTHON_EOF
+            
+                if [ $? -eq 0 ]; then
+                    echo "📝 A backup of your original devcontainer.json was saved as devcontainer.json.backup"
+                fi
             fi
             
             echo "✅ Audio passthrough setup complete"
