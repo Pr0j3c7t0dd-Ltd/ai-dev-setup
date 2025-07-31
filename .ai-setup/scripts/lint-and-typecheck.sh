@@ -5,10 +5,25 @@
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <file_path>"
-    exit 1
+    exit 0  # Exit successfully when no file provided
 fi
 
 FILE_PATH="$1"
+
+# Skip if file doesn't exist
+if [ ! -f "$FILE_PATH" ]; then
+    echo "ℹ️  File not found: $FILE_PATH"
+    exit 0
+fi
+
+# Skip if this is the lint script itself
+SCRIPT_PATH="$(realpath "$0" 2>/dev/null || echo "$0")"
+FILE_REALPATH="$(realpath "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")"
+if [ "$SCRIPT_PATH" = "$FILE_REALPATH" ]; then
+    echo "ℹ️  Skipping self-linting"
+    exit 0
+fi
+
 FILE_EXT="${FILE_PATH##*.}"
 FILE_DIR="$(dirname "$FILE_PATH")"
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"

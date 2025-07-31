@@ -2,10 +2,13 @@
 
 set -e
 
+# Version number for the setup script
+SCRIPT_VERSION="1.0.1"
+
 REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
 
-echo "🤖 AI Development Setup Script"
+echo "🤖 AI Development Setup Script v${SCRIPT_VERSION}"
 echo "=============================="
 echo ""
 
@@ -207,17 +210,21 @@ try:
     if not pulse_exists:
         config['runArgs'].extend(pulse_env)
     
-    # Add or update mounts - only add X11 mount if the directory exists
+    # Handle mounts - remove problematic X11 mount on macOS
+    if 'mounts' not in config:
+        config['mounts'] = []
+    
+    # Remove any existing X11 mounts
+    x11_mount_pattern = "/tmp/.X11-unix"
+    config['mounts'] = [mount for mount in config['mounts'] if x11_mount_pattern not in mount]
+    
+    # Only add X11 mount if the directory exists (e.g., XQuartz is installed)
     if os.path.exists('/tmp/.X11-unix'):
         x11_mount = "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
-        if 'mounts' not in config:
-            config['mounts'] = []
-        
-        if x11_mount not in config['mounts']:
-            config['mounts'].append(x11_mount)
-            print("✅ Added X11 mount for display forwarding")
+        config['mounts'].append(x11_mount)
+        print("✅ Added X11 mount for display forwarding")
     else:
-        print("ℹ️  Skipping X11 mount - /tmp/.X11-unix not found (normal on macOS without XQuartz)")
+        print("ℹ️  Removed X11 mount - /tmp/.X11-unix not found (normal on macOS without XQuartz)")
     
     # Write the updated config back
     with open(devcontainer_path, 'w') as f:
@@ -233,7 +240,6 @@ except Exception as e:
     print("Please manually add the following to your .devcontainer/devcontainer.json:")
     print('  "postCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/",')
     print('  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],')
-    print('  "mounts": ["source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"],')
 PYTHON_EOF
             
                 if [ $? -eq 0 ]; then
@@ -262,11 +268,24 @@ echo "📥 Downloading AI development resources..."
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
-echo "📦 Cloning ai-dev-setup repository..."
+echo "📦 Cloning ai-dev-setup repository (v${SCRIPT_VERSION})..."
+# Force fresh clone to avoid caching issues
 git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TEMP_DIR/ai-dev-setup" 2>/dev/null || {
     echo "❌ Error: Failed to clone repository. Please check your internet connection."
     exit 1
 }
+
+# Check if there's a newer version available
+if [ -f "$TEMP_DIR/ai-dev-setup/.ai-setup/scripts/setup-ai-dev.sh" ]; then
+    REMOTE_VERSION=$(grep "^SCRIPT_VERSION=" "$TEMP_DIR/ai-dev-setup/.ai-setup/scripts/setup-ai-dev.sh" | cut -d'"' -f2)
+    if [ "$REMOTE_VERSION" != "$SCRIPT_VERSION" ]; then
+        echo ""
+        echo "⚠️  A newer version of this script is available (v${REMOTE_VERSION})"
+        echo "   Please download the latest version from:"
+        echo "   curl -fsSL https://raw.githubusercontent.com/Pr0j3c7t0dd-Ltd/ai-dev-setup/main/.ai-setup/scripts/setup-ai-dev.sh | bash"
+        echo ""
+    fi
+fi
 
 echo "📋 Copying .ai-setup folder..."
 if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup" ]; then
