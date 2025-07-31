@@ -3,7 +3,7 @@
 set -e
 
 # Version number for the setup script
-SCRIPT_VERSION="1.0.5"
+SCRIPT_VERSION="1.0.7"
 
 REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
@@ -64,37 +64,97 @@ if [[ "$SETUP_DEVCONTAINER" =~ ^[Yy]$ ]]; then
                     brew install pulseaudio
                     echo "✅ PulseAudio installed"
                     
-                    # Start PulseAudio daemon with network module
-                    echo "🔊 Starting PulseAudio daemon with network support..."
-                    # Kill any existing PulseAudio instances first
-                    pulseaudio --kill 2>/dev/null || true
-                    sleep 1
-                    # Start with TCP module for network audio
-                    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon
-                    sleep 2
-                    # Load anonymous auth module
-                    pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
-                    echo "✅ PulseAudio daemon started with network audio enabled"
+                    # Create PulseAudio configuration directory
+                    echo "📝 Creating PulseAudio configuration..."
+                    mkdir -p ~/.config/pulse
+                    
+                    # Create default.pa config file with TCP module
+                    # Detect correct path for system defaults (Apple Silicon vs Intel)
+                    if [ -f "/opt/homebrew/etc/pulse/default.pa" ]; then
+                        PULSE_DEFAULT="/opt/homebrew/etc/pulse/default.pa"
+                    elif [ -f "/usr/local/etc/pulse/default.pa" ]; then
+                        PULSE_DEFAULT="/usr/local/etc/pulse/default.pa"
+                    else
+                        PULSE_DEFAULT="/etc/pulse/default.pa"
+                    fi
+                    
+                    cat > ~/.config/pulse/default.pa << EOF
+# Load system defaults
+.include $PULSE_DEFAULT
+
+# Load TCP module for network audio (Docker containers)
+load-module module-native-protocol-tcp
+
+# Set exit idle time to never
+set-prop module-suspend-on-idle timeout 0
+EOF
+                    echo "✅ PulseAudio configuration created"
+                    
+                    # Stop any existing PulseAudio service
+                    brew services stop pulseaudio 2>/dev/null || true
+                    
+                    # Start PulseAudio as a service
+                    echo "🔊 Starting PulseAudio as a service..."
+                    brew services start pulseaudio
+                    
+                    # Wait for service to start
+                    sleep 3
+                    
+                    # Verify PulseAudio is running
+                    if pulseaudio --check 2>/dev/null; then
+                        echo "✅ PulseAudio service started with network audio enabled"
+                        echo "✅ PulseAudio will start automatically on reboot"
+                    else
+                        echo "⚠️  PulseAudio service may not have started correctly"
+                        echo "   Try: brew services restart pulseaudio"
+                    fi
                 else
                     echo "⚠️  Homebrew not found. Please install PulseAudio manually:"
                     echo "    brew install pulseaudio"
                 fi
             else
                 echo "✅ PulseAudio already installed"
-                # Check if daemon is running
-                if ! pgrep -x pulseaudio > /dev/null; then
-                    echo "🔊 Starting PulseAudio daemon with network support..."
-                    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon
-                    sleep 2
-                    pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
-                    echo "✅ PulseAudio daemon started"
+                
+                # Ensure configuration exists
+                if [ ! -f ~/.config/pulse/default.pa ]; then
+                    echo "📝 Creating PulseAudio configuration..."
+                    mkdir -p ~/.config/pulse
+                    
+                    # Detect correct path for system defaults (Apple Silicon vs Intel)
+                    if [ -f "/opt/homebrew/etc/pulse/default.pa" ]; then
+                        PULSE_DEFAULT="/opt/homebrew/etc/pulse/default.pa"
+                    elif [ -f "/usr/local/etc/pulse/default.pa" ]; then
+                        PULSE_DEFAULT="/usr/local/etc/pulse/default.pa"
+                    else
+                        PULSE_DEFAULT="/etc/pulse/default.pa"
+                    fi
+                    
+                    cat > ~/.config/pulse/default.pa << EOF
+# Load system defaults
+.include $PULSE_DEFAULT
+
+# Load TCP module for network audio (Docker containers)
+load-module module-native-protocol-tcp
+
+# Set exit idle time to never
+set-prop module-suspend-on-idle timeout 0
+EOF
+                    echo "✅ PulseAudio configuration created"
+                fi
+                
+                # Check if PulseAudio service is running
+                if brew services list | grep -q "pulseaudio.*started"; then
+                    echo "✅ PulseAudio service already running"
                 else
-                    echo "✅ PulseAudio daemon already running"
-                    # Ensure network module is loaded
-                    if ! pactl list modules | grep -q "module-native-protocol-tcp"; then
-                        echo "🔊 Loading network audio module..."
-                        pactl load-module module-native-protocol-tcp auth-anonymous=1 2>/dev/null || true
-                        echo "✅ Network audio module loaded"
+                    echo "🔊 Starting PulseAudio as a service..."
+                    brew services start pulseaudio
+                    sleep 3
+                    if pulseaudio --check 2>/dev/null; then
+                        echo "✅ PulseAudio service started"
+                        echo "✅ PulseAudio will start automatically on reboot"
+                    else
+                        echo "⚠️  PulseAudio service may not have started correctly"
+                        echo "   Try: brew services restart pulseaudio"
                     fi
                 fi
             fi
@@ -265,7 +325,7 @@ try:
     if not pulse_exists:
         config['runArgs'].extend(pulse_env)
     
-    # Handle mounts - remove problematic X11 mount on macOS
+    # Handle mounts
     if 'mounts' not in config:
         config['mounts'] = []
     
@@ -273,13 +333,16 @@ try:
     x11_mount_pattern = "/tmp/.X11-unix"
     config['mounts'] = [mount for mount in config['mounts'] if x11_mount_pattern not in mount]
     
-    # Only add X11 mount if the directory exists (e.g., XQuartz is installed)
-    if os.path.exists('/tmp/.X11-unix'):
-        x11_mount = "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
-        config['mounts'].append(x11_mount)
-        print("✅ Added X11 mount for display forwarding")
-    else:
-        print("ℹ️  Removed X11 mount - /tmp/.X11-unix not found (normal on macOS without XQuartz)")
+    # Add PulseAudio config mount for authentication
+    import os
+    home = os.path.expanduser("~")
+    pulse_config_mount = f"source={home}/.config/pulse,target=/home/node/.config/pulse,type=bind,consistency=cached"
+    
+    # Check if mount already exists
+    pulse_mount_exists = any("/.config/pulse" in mount for mount in config['mounts'])
+    if not pulse_mount_exists:
+        config['mounts'].append(pulse_config_mount)
+        print("✅ Added PulseAudio config mount for authentication")
     
     # Write the updated config back
     with open(devcontainer_path, 'w') as f:
@@ -306,10 +369,21 @@ PYTHON_EOF
             echo ""
             echo "📝 PulseAudio daemon has been started with network audio support"
             echo ""
-            echo "ℹ️  If you need to restart PulseAudio manually:"
-            echo "    pulseaudio --kill"
-            echo "    pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon"
-            echo "    pactl load-module module-native-protocol-tcp auth-anonymous=1"
+            echo "🔧 Container audio setup:"
+            echo "  - PULSE_SERVER environment variable set to host.docker.internal"
+            echo "  - PulseAudio config mounted for authentication (~/.config/pulse)"
+            echo "  - Audio tools will be installed on container creation"
+            echo ""
+            echo "ℹ️  To test audio in the container:"
+            echo "    docker run -it -e PULSE_SERVER=host.docker.internal \\"
+            echo "      -v ~/.config/pulse:/home/node/.config/pulse \\"
+            echo "      your-image speaker-test -c 2 -l 1 -t wav"
+            echo ""
+            echo "ℹ️  PulseAudio service management:"
+            echo "    brew services restart pulseaudio    # Restart the service"
+            echo "    brew services stop pulseaudio       # Stop the service"
+            echo "    brew services start pulseaudio      # Start the service"
+            echo "    brew services list                  # Check service status"
             echo ""
         else
             echo "⚠️  Audio passthrough setup is currently only supported on macOS"
