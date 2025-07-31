@@ -56,55 +56,60 @@ git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TEMP_DIR/ai-dev-setup" 2>/d
     exit 1
 }
 
-echo "📋 Copying .raw-ai-rules folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-rules" ]; then
-    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-rules" .
-    echo "✅ .raw-ai-rules copied"
+echo "📋 Copying AI rules..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/rules" ]; then
+    mkdir -p .raw-ai-rules
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/rules/"* .raw-ai-rules/
+    echo "✅ AI rules copied"
 else
-    echo "⚠️  Warning: .raw-ai-rules folder not found in repository"
+    echo "⚠️  Warning: rules folder not found in repository"
 fi
 
-echo "📋 Copying .raw-ai-prompts folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-prompts" ]; then
-    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-prompts" .
-    echo "✅ .raw-ai-prompts copied"
+echo "📋 Copying AI prompts..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/prompts" ]; then
+    mkdir -p .raw-ai-prompts
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/prompts/"* .raw-ai-prompts/
+    echo "✅ AI prompts copied"
 else
-    echo "⚠️  Warning: .raw-ai-prompts folder not found in repository"
+    echo "⚠️  Warning: prompts folder not found in repository"
 fi
 
 echo "📋 Copying scripts folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/scripts" ]; then
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/scripts" ]; then
     if [ ! -d "scripts" ]; then
         mkdir scripts
     fi
-    cp -r "$TEMP_DIR/ai-dev-setup/scripts/"* scripts/
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/scripts/"* scripts/
     echo "✅ scripts copied"
 else
     echo "⚠️  Warning: scripts folder not found in repository"
 fi
 
-echo "📋 Copying .raw-ai-hooks folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-hooks" ]; then
-    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-hooks" .
-    echo "✅ .raw-ai-hooks copied (includes strict-code-linter hook)"
+echo "📋 Copying AI hooks..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/hooks" ]; then
+    mkdir -p .raw-ai-hooks
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/hooks/"* .raw-ai-hooks/
+    echo "✅ AI hooks copied (includes strict-code-linter hook)"
 else
-    echo "⚠️  Warning: .raw-ai-hooks folder not found in repository"
+    echo "⚠️  Warning: hooks folder not found in repository"
 fi
 
-echo "📋 Copying .raw-ai-agents folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-agents" ]; then
-    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-agents" .
-    echo "✅ .raw-ai-agents copied (includes strict-code-linter agent)"
+echo "📋 Copying AI agents..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/agents" ]; then
+    mkdir -p .raw-ai-agents
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/agents/"* .raw-ai-agents/
+    echo "✅ AI agents copied (includes strict-code-linter agent)"
 else
-    echo "⚠️  Warning: .raw-ai-agents folder not found in repository"
+    echo "⚠️  Warning: agents folder not found in repository"
 fi
 
-echo "📋 Copying .raw-ai-commands folder..."
-if [ -d "$TEMP_DIR/ai-dev-setup/.raw-ai-commands" ]; then
-    cp -r "$TEMP_DIR/ai-dev-setup/.raw-ai-commands" .
-    echo "✅ .raw-ai-commands copied (slash commands)"
+echo "📋 Copying AI commands..."
+if [ -d "$TEMP_DIR/ai-dev-setup/.ai-setup/commands" ]; then
+    mkdir -p .raw-ai-commands
+    cp -r "$TEMP_DIR/ai-dev-setup/.ai-setup/commands/"* .raw-ai-commands/
+    echo "✅ AI commands copied (slash commands)"
 else
-    echo "⚠️  Warning: .raw-ai-commands folder not found in repository"
+    echo "⚠️  Warning: commands folder not found in repository"
 fi
 
 echo "🔧 Setting up .claude directory structure..."

@@ -16,7 +16,7 @@ Or if you prefer wget:
 bash -c "$(wget -qO- https://gist.githubusercontent.com/pr0j3c7t0dd/0b1d8d820e9357bae7ccc4938eba56e8/raw/setup-ai-dev.sh)"
 ```
 
-> **Note**: This script is hosted as a public GitHub Gist while the main repository remains private. See [create-gist-instructions.md](scripts/create-gist-instructions.md) for setup details.
+> **Note**: This script is hosted as a public GitHub Gist while the main repository remains private. You'll need to update the gist with the new script from `.ai-setup/scripts/setup-ai-dev.sh`.
 
 ## What This Does
 
