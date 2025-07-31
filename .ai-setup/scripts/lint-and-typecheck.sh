@@ -71,9 +71,21 @@ case "$FILE_EXT" in
         run_if_exists eslint "$FILE_PATH"
         ;;
         
+    sh|bash)
+        echo "🐚 Checking shell script: $FILE_PATH"
+        
+        # Run shellcheck if available
+        run_if_exists shellcheck "$FILE_PATH"
+        
+        # Check bash syntax
+        bash -n "$FILE_PATH" 2>&1
+        ;;
+        
     *)
         echo "ℹ️  No specific linting configured for .$FILE_EXT files"
+        exit 0  # Exit successfully for unsupported file types
         ;;
 esac
 
 echo "✅ Lint and type check complete for $FILE_PATH"
+exit 0  # Always exit successfully unless a linter fails above
