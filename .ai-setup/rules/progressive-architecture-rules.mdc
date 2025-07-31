@@ -1,0 +1,116 @@
+---
+trigger: always_on
+description: rules for progressive architecture best practices
+globs:
+alwaysApply: false
+---
+# Progressive Architecture - VibeBiz Four-Stage Evolution
+
+## 🎯 CORE PRINCIPLES
+- Design for current stage, plan for next
+- Stage-appropriate solutions (no over-engineering)
+- Clear upgrade paths, validate transition readiness
+- Monitor metrics, plan 3-6 months ahead
+- Gradual migrations, backward compatibility
+- Document decisions, consider cost implications
+
+## 🚀 MVP STAGE (0-1K USERS)
+**Focus**: Core functionality, development speed over optimization
+**Stack**: Monolithic, SQLite→PostgreSQL, serverless/PaaS, managed services
+**Quality**: Basic testing/security/monitoring, env config, backups
+**NEVER**: Enterprise features, microservices, premature optimization
+
+## 🏗️ FOUNDATION STAGE (1K-10K USERS)
+**Evolution**: CI/CD pipelines, monitoring/observability, database optimization, caching
+**Infrastructure**: Docker containers, environment separation, automated testing, secret management
+**Quality**: Comprehensive testing, code quality controls, security scanning, performance monitoring
+**NEVER**: Deploy without automated testing, ignore bottlenecks
+
+## 📈 GROWTH STAGE (10K-100K USERS)
+**Patterns**: Service decomposition, event-driven architecture, API versioning, multi-layer caching, load balancing
+**Infrastructure**: Auto-scaling, CDN, database replication, message queues, capacity planning
+**Operations**: SRE practices, SLO/SLI monitoring, chaos engineering, on-call rotation, change management
+**NEVER**: Microservices without clear boundaries
+
+## 🏢 FULL-STACK STAGE (100K+ USERS)
+**Architecture**: True microservices, service mesh, distributed tracing, domain-driven design, data consistency
+**Enterprise**: Multi-region, advanced observability, integration patterns, disaster recovery
+**Maturity**: Platform engineering teams, advanced deployments, governance frameworks, mature incident response
+
+## 🔄 TRANSITION TRIGGERS
+
+### MVP → Foundation (1K users)
+Product-market fit, revenue established, feature set stable, team >5 engineers, performance issues
+
+### Foundation → Growth (10K users)
+Growth trajectory, scaling revenue, team >10 people, infrastructure costs significant, geographic expansion
+
+### Growth → Full-Stack (100K users)
+Enterprise customers, compliance critical, multi-region required, advanced integrations, platform stability critical
+
+## 🛠️ TECHNOLOGY EVOLUTION
+
+### Database
+- **MVP**: SQLite → PostgreSQL
+- **Foundation**: PostgreSQL + read replicas
+- **Growth**: Partitioned PostgreSQL + Redis
+- **Full-Stack**: Multi-region PostgreSQL + advanced caching
+
+### Authentication
+- **MVP**: Simple JWT + local storage
+- **Foundation**: Secure JWT + session management
+- **Growth**: OAuth + SSO capabilities
+- **Full-Stack**: Enterprise SSO + advanced security
+
+### Deployment
+- **MVP**: PaaS (Vercel, Railway)
+- **Foundation**: Docker + CI/CD
+- **Growth**: Kubernetes + auto-scaling
+- **Full-Stack**: Multi-region K8s + service mesh
+
+### Monitoring
+- **MVP**: Basic error tracking (Sentry)
+- **Foundation**: App monitoring (Datadog/NewRelic)
+- **Growth**: Full observability (OpenTelemetry)
+- **Full-Stack**: Enterprise observability platform
+
+## 💰 COST OPTIMIZATION BY STAGE
+
+### MVP
+Free tiers/credits, cost-effective managed services, weekly monitoring, spot instances, no over-provisioning
+
+### Foundation
+Resource tagging, cost per customer/user, auto-scaling, monthly optimization
+
+### Growth
+Advanced monitoring, usage pattern optimization, cost allocation by team/feature, enterprise pricing
+
+### Full-Stack
+FinOps practices, advanced tools, cost-aware engineering, multi-cloud optimization
+
+## 🔒 SECURITY & COMPLIANCE EVOLUTION
+
+### Security Maturity
+- **MVP**: Basic auth, input validation, HTTPS
+- **Foundation**: Enhanced auth, security scanning, secrets management
+- **Growth**: Threat detection, compliance frameworks
+- **Full-Stack**: Zero-trust, advanced compliance
+
+### Compliance Requirements
+- **MVP**: Basic data protection, privacy policy
+- **Foundation**: GDPR, basic audit logging
+- **Growth**: SOC 2 Type I, enhanced controls
+- **Full-Stack**: SOC 2 Type II, industry-specific compliance
+
+## 📋 READINESS CHECKLISTS
+
+### Foundation Ready
+✅ CI/CD stable ✅ Monitoring/alerting ✅ DB optimization ✅ Security enhanced ✅ Processes documented ✅ Cost monitoring ✅ Backup/recovery tested
+
+### Growth Ready
+✅ Service boundaries documented ✅ Auto-scaling tested ✅ Caching implemented ✅ Load testing passed ✅ SRE practices ✅ Advanced monitoring ✅ Cost optimization active
+
+### Full-Stack Ready
+✅ Microservices implemented ✅ Service mesh configured ✅ Multi-region tested ✅ Enterprise security ✅ Advanced observability ✅ Compliance frameworks ✅ Platform engineering team
+
+**Never skip stages without justification. Each stage builds foundation for the next.**

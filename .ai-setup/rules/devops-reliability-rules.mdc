@@ -1,0 +1,49 @@
+---
+trigger: model_decision
+description: rules for devops and reliability best practices
+globs:
+alwaysApply: false
+---
+# DevOps & SRE Standards - VibeBiz
+
+## 📊 SLO/SLI TARGETS & ERROR BUDGETS
+**VibeBiz SLOs**: Web (99.9%, <500ms p95), API (99.95%, <200ms p99), DB (99.99%, <100ms p95), Jobs (99.5%, <300s p90)
+**ALWAYS**: Define measurable SLOs, monitor continuously, track error budgets real-time, balance velocity/reliability
+**NEVER**: Deploy when budget exhausted, ignore SLO violations
+
+## 🚨 INCIDENT RESPONSE
+**Classification**: P0 (outage/breach), P1 (major degradation), P2 (minor issues), P3 (cosmetic)
+**Response**: Acknowledge <5min, update every 15min, PIRs within 48h, implement action items
+**On-Call**: 24/7 coverage, fair rotation, max 1 week, comprehensive runbooks, escalate >30min
+**NEVER**: Work P0/P1 alone, blame individuals
+
+## 📈 MONITORING & OBSERVABILITY
+**Golden Signals**: Latency, traffic, errors, saturation + health checks + structured JSON logging + correlation IDs
+**Alerting**: Symptoms not causes, actionable with context, test rules regularly
+**NEVER**: Log sensitive data, create noisy alerts, ignore repeated alerts
+
+## 🚀 DEPLOYMENT & RELEASE
+**Strategy**: Blue-green/canary, automated rollback, staging validation, feature flags
+**CI/CD**: Full test suite, security scans, semantic versioning, checksums
+**Release**: Notes, coordinate dependencies, rollback plans ready
+**NEVER**: Deploy failing builds, Fridays/holidays, multiple major changes together
+
+## 💾 BACKUP & DISASTER RECOVERY
+**Backup**: Automated daily, test restoration monthly, encrypt rest/transit, multiple generations, separate storage
+**DR**: RTO <4h, RPO <1h, quarterly drills, documented procedures, test cross-region failover
+**NEVER**: Assume recovery works without testing
+
+## 🔧 INFRASTRUCTURE & SECURITY
+**IaC**: Terraform, version control, staging first, approval required, immutable patterns, config separation
+**Security**: Monitor suspicious patterns, intrusion detection, least privilege, MFA for production, rotate credentials
+**Compliance**: SOC 2 Type II, GDPR requirements, documented procedures
+**NEVER**: Manual production changes, hardcode env values, share creds, ignore audit findings
+
+## 📊 CAPACITY & PERFORMANCE
+**Planning**: Monitor trends, plan 6 months ahead, auto-scaling, test under load
+**Performance**: Profile regularly, optimize queries/indexes, implement caching
+**NEVER**: Wait until resources exhausted, ignore degradation trends
+
+## ✅ QUALITY GATES
+**Production Ready**: SLOs monitored, health checks, incident procedures, backup/recovery tested, security scans, load testing, on-call rotation
+**Operational Excellence**: PIRs for P0/P1, monthly SLO tracking, quarterly DR drills/capacity planning, annual security audits

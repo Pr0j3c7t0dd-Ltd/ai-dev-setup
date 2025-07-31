@@ -1,0 +1,49 @@
+---
+trigger: always_on
+description:
+globs:
+alwaysApply: true
+---
+# Content Standards - VibeBiz
+
+## Audience
+Public end users (all ages/abilities) and experienced professionals new to our services.
+
+## Core Principles
+- Write for technical and non-technical staff
+- Follow GOV.UK style guide, plain English principles
+- Be practical and outcome-focused
+
+## Language Guidelines
+
+### Plain English
+- Define technical terms on first use
+- Use common words: "help" not "assist", "buy" not "purchase"
+- Avoid jargon, keep sentences <25 words, use American English
+
+### Direct & Active
+- Active voice: "Configure the API" not "The API should be configured"
+- Address as "you", avoid hedging ("please", "simply"), start instructions with verbs
+
+### Grounded
+- Real scenarios as examples, acknowledge constraints, include realistic time estimates
+
+## Structure
+- Clear headings, lead with user outcomes
+- Bullet points for lists, prose for context
+- End sections with next steps
+
+## Tone by Content Type
+| Type | Tone | Example |
+|------|------|---------|
+| Instructions | Direct | "Run the test suite before committing" |
+| Concepts | Educational | "AI models learn from data patterns" |
+| Troubleshooting | Supportive | "If you see this error, first check..." |
+| Best practices | Firm but encouraging | "Always validate input data" |
+
+## Avoid
+- Long words when short work, passive voice (except for clarity)
+- Unnecessary words, assumptions about technical background
+
+## Quick Check
+Would the audience understand and find this useful? Does it follow GOV.UK style?

@@ -1,0 +1,122 @@
+---
+trigger: model_decision
+description:
+globs:
+alwaysApply: false
+---
+# Post-Development Hygiene Checklist - VibeBiz
+
+## 🎯 MANDATORY EXECUTION ORDER
+Create plan, verify each step. ALL must pass before merge.
+
+## 📦 PACKAGE UPDATES
+
+### JavaScript/TypeScript & Python
+- **UPDATE**: Latest versions via web search, update all `package.json`/`pyproject.toml`
+- **COMMANDS**: `pnpm update --latest && pnpm install` | `pip list --outdated`
+- **VERIFY**: `pnpm audit && pnpm outdated` | `safety check`
+- **CONSISTENCY**: Same versions across workspace, latest GitHub Actions, Docker images
+
+### Python Requirements (IF packages modified)
+- Update `pyproject.toml`, regenerate `requirements.txt`: `pip freeze > requirements.txt`
+- **VERIFY**: `python -m venv test_env && pip install -e ".[dev,test]"`
+- **COMPATIBILITY**: Python 3.11-3.13, GitHub Actions matrix updated
+
+## 🗄️ DATABASE & MIGRATIONS
+
+### Schema Changes (IF modified)
+- **CREATE**: `alembic revision --autogenerate -m "message"`
+- **TEST**: `alembic upgrade head` → `alembic downgrade -1` → `alembic upgrade head`
+- **Node.js**: `pnpm --filter <service> db:migrate-dev`
+- **VERIFY**: Fresh install works, data access type-safe
+
+### Data & Environment
+- Update seeders, test factories in `packages/test-utils/src/factories.ts`
+- Add env vars to `.env.example`, update `docs/DEPLOYMENT.md`
+- **VERIFY**: `pnpm db:reset && pnpm db:seed` works, app starts with `.env.example`
+
+## 📚 DOCUMENTATION
+
+### Architecture (MANDATORY IF changed)
+- **UPDATE**: `docs/ARCHITECTURE.md` for services/APIs/schema/dependencies/security
+- **ADR**: `npx adr-tools new "Title"` for significant decisions
+- **API**: Update OpenAPI schemas, `pnpm generate:api-types`, `docs/api/`
+- **README**: Main + service-specific if installation changed
+- **VERIFY**: Docs match implementation, fresh dev can follow setup
+
+## 🧪 TESTING
+
+### New Functionality (MANDATORY)
+- **UNIT**: 80% coverage minimum, test behavior not implementation
+- **INTEGRATION**: API/DB with Testcontainers, test multi-tenant isolation
+- **E2E**: Critical journeys with Playwright if UI modified
+- **CONTRACT**: Pact tests if consumer/provider changed
+- **PATTERNS**: Use `packages/test-utils`, proper factories/mocks, positive/negative cases
+
+### Execution & Coverage
+- **COMMAND**: `pnpm test` (ALL must pass), `pnpm test:coverage`
+- **REQUIREMENTS**: 60% MVP minimum, 80% new code, <5min runtime
+- **VERIFY**: No flaky tests (run 3x), isolated environments, CI passes
+
+## 🔍 CODE QUALITY
+
+### Linting & Security
+- **COMMANDS**:
+  - `pnpm lint` (ESLint, Prettier, TypeScript)
+  - `ruff check . && black . && mypy .` (Python)
+  - `pnpm audit`, `gitleaks detect`, `semgrep scan`, `bandit -r services/`, `safety check`
+  - IaC: `tfsec`/`Checkov`, Dockerfile: `trivy`
+- **REQUIREMENTS**: Zero linting errors, no HIGH/CRITICAL security issues
+
+### Formatting & Types
+- **COMMANDS**: `pnpm format`, `pnpm type-check`, `mypy .`
+- **REQUIREMENTS**: No type errors, consistent formatting
+
+## 🚫 .gitignore MAINTENANCE
+**ADD**: Build artifacts (`dist/`, `.next/`, `__pycache__/`), coverage (`coverage/`, `htmlcov/`), tests (`test-results/`), OS files (`.DS_Store`), env files (`.env.local`), IDE (`.vscode/settings.json`), temp files (`*.tmp`), package dirs (`node_modules/`, `venv/`)
+**VERIFY**: `git status` shows no sensitive files
+
+## 🚀 FINAL VERIFICATION
+
+### Clean Install Test (ALL MUST SUCCEED)
+1. Clone to fresh directory
+2. `pnpm install`
+3. `pnpm build`
+4. `pnpm test`
+5. `pnpm dev` (verify system starts)
+
+### Pipeline & Performance
+- **CI/CD**: Push to feature branch, verify GitHub Actions pass
+- **DOCS**: All env vars documented, Docker builds succeed
+- **PERFORMANCE**: Memory usage monitored, build <5min, no leaks
+
+## 🔧 TROUBLESHOOTING
+
+### Package Updates Fail
+1. Check changelogs for breaking changes
+2. Update configs for new versions
+3. Search migration guides
+4. Pin problematic packages temporarily
+
+### Tests/Linting Fail
+1. Check API changes in testing libraries
+2. Update test configurations
+3. Fix auto-fixable: `pnpm lint:fix`
+4. Update TypeScript/ESLint configs
+
+## ✅ SUCCESS CRITERIA (ALL REQUIRED)
+
+✅ Latest package versions (web verified)
+✅ Python requirements updated/documented
+✅ DB migrations work on fresh install
+✅ Documentation reflects current state
+✅ All tests pass with coverage
+✅ No linting/formatting errors
+✅ No security vulnerabilities
+✅ .gitignore prevents sensitive commits
+✅ Clean install process complete
+✅ CI/CD pipeline ready
+
+**IF ANY FAIL**: Fix before proceeding. No exceptions.
+
+**Quality is non-negotiable in multi-tenant SaaS.**

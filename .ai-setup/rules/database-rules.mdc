@@ -1,0 +1,124 @@
+---
+trigger: model_decision
+description: Rule for database and sql best practices
+globs:
+alwaysApply: false
+---
+# Database Standards - VibeBiz Multi-Tenant PostgreSQL
+
+## 🚨 CRITICAL SECURITY (NEVER VIOLATE)
+
+### Multi-Tenant Isolation (HIGHEST PRIORITY)
+- ALWAYS implement Row-Level Security (RLS) for tenant tables
+- NEVER query without organization_id filtering
+- ALWAYS use current_setting('app.current_org_id') in RLS policies
+- ALWAYS validate tenant context before operations
+- NEVER allow cross-tenant data leakage
+
+```sql
+-- Required RLS pattern
+CREATE POLICY tenant_isolation ON projects
+FOR ALL TO application_role
+USING (organization_id = current_setting('app.current_org_id')::uuid);
+```
+
+### SQL Injection & Access Control
+- ALWAYS use parameterized queries with SQLAlchemy ORM
+- NEVER concatenate user input into SQL
+- NEVER use raw SQL without parameterization
+- ALWAYS use dedicated DB users per service
+- NEVER share credentials between environments
+- ALWAYS rotate passwords regularly
+
+## 🏗️ SCHEMA DESIGN
+
+### Table Standards
+- ALWAYS include organization_id in tenant tables
+- ALWAYS use UUIDs for primary keys
+- ALWAYS add created_at/updated_at timestamps
+- ALWAYS use descriptive naming conventions
+- ALWAYS implement proper constraints and validations
+
+### Indexing Strategy
+- ALWAYS create indexes on organization_id
+- ALWAYS index frequently queried columns
+- ALWAYS include organization_id in compound indexes
+- NEVER create unnecessary indexes
+- ALWAYS monitor and remove unused indexes
+
+## 🔄 MIGRATIONS & PERFORMANCE
+
+### Migration Best Practices
+- ALWAYS use Alembic for schema changes
+- ALWAYS test on production-like data
+- ALWAYS include rollback procedures
+- NEVER apply destructive changes without backup
+- ALWAYS coordinate with deployments
+
+### Query Optimization
+- ALWAYS use EXPLAIN ANALYZE for slow queries
+- NEVER ignore N+1 query problems
+- ALWAYS use connection pooling (PgBouncer)
+- ALWAYS implement pagination
+- NEVER use SELECT * in production
+
+### Caching
+- ALWAYS implement Redis for distributed caching
+- ALWAYS cache query results appropriately
+- ALWAYS implement proper invalidation strategies
+
+## 💾 BACKUP & MONITORING
+
+### Backup Requirements
+- ALWAYS maintain automated daily backups
+- ALWAYS test restoration monthly
+- ALWAYS encrypt backups at rest/transit
+- NEVER store backups with primary DB
+- ALWAYS maintain point-in-time recovery
+
+### Performance Monitoring
+- ALWAYS monitor query latency and throughput
+- ALWAYS track connection pool metrics
+- ALWAYS analyze slow queries (>100ms)
+- ALWAYS monitor index usage
+- NEVER ignore lock contention
+
+## 🔐 SECURITY & COMPLIANCE
+
+### Data Protection
+- ALWAYS use SSL/TLS for connections
+- ALWAYS encrypt sensitive data
+- NEVER expose DB ports to internet
+- ALWAYS implement audit logging
+- ALWAYS mask data in non-prod environments
+
+### GDPR Compliance
+- ALWAYS implement data subject rights
+- ALWAYS maintain audit trails
+- ALWAYS implement retention policies
+- NEVER store unnecessary personal data
+
+## 🚫 ANTI-PATTERNS
+
+Never Do:
+- Use triggers for business logic
+- Implement app logic in stored procedures
+- Use DB for session storage or queuing
+- Ignore foreign key constraints
+- Use cursors or loops for operations
+- Store plaintext sensitive data
+
+## 📋 QUALITY GATES
+
+Required Before Deployment:
+- ✅ RLS policies tested for all tenant tables
+- ✅ Migrations tested on staging
+- ✅ Query performance optimized
+- ✅ Backup/recovery verified
+- ✅ Security review completed
+- ✅ Monitoring configured
+
+Ongoing:
+- ✅ Performance within SLA targets
+- ✅ Backup restoration tested monthly
+- ✅ Multi-tenant isolation verified

@@ -1,0 +1,206 @@
+---
+trigger: model_decision
+description: rules for infrastructure best practices
+globs:
+alwaysApply: false
+---
+# Infrastructure Standards - VibeBiz
+
+## 🏗️ TERRAFORM INFRASTRUCTURE AS CODE
+
+### Code Quality Standards
+- ALWAYS use version constraints with ~> operator
+- ALWAYS pin provider versions
+- NEVER hardcode values - use variables/locals
+- ALWAYS use consistent naming with env prefixes
+- ALWAYS tag resources for cost tracking
+- NEVER commit terraform.tfstate to version control
+- ALWAYS use remote state backend with locking
+
+### Structure & Organization
+- ALWAYS organize into logical modules
+- ALWAYS use consistent naming (main.tf, variables.tf, outputs.tf)
+- NEVER create monolithic configurations
+- ALWAYS implement variable validation
+- NEVER duplicate configs across environments
+
+### Progressive Architecture
+- ALWAYS configure by stage (MVP, Growth, Full-Stack)
+- ALWAYS implement auto-scaling per stage
+- NEVER over-provision for early stages
+- ALWAYS plan scaling transitions
+- NEVER ignore stage-specific cost optimization
+
+## 🐳 CONTAINER & DOCKER STANDARDS
+
+### Docker Best Practices
+- ALWAYS use multi-stage builds for production
+- ALWAYS use specific tags, never 'latest'
+- NEVER run as root user
+- ALWAYS implement health checks
+- ALWAYS minimize layers and image size
+- NEVER include secrets in images
+- ALWAYS scan for vulnerabilities
+
+### Container Security
+- ALWAYS use distroless/minimal base images
+- ALWAYS implement USER directive
+- NEVER install unnecessary packages
+- ALWAYS update base images regularly
+- ALWAYS sign images properly
+- ALWAYS implement resource limits
+
+## ☸️ KUBERNETES DEPLOYMENT
+
+### Resource Management
+- ALWAYS implement resource requests/limits
+- ALWAYS use meaningful labels/selectors
+- NEVER deploy without health checks
+- ALWAYS use ConfigMaps/Secrets for config
+- NEVER hardcode configuration
+- ALWAYS implement RBAC policies
+
+### Service Mesh (Growth+)
+- ALWAYS implement Istio for Growth/Full-Stack
+- ALWAYS enable mTLS between services
+- NEVER allow unencrypted communication
+- ALWAYS implement traffic policies
+- ALWAYS use mesh for canary deployments
+
+### Multi-Tenant Kubernetes
+- ALWAYS implement namespace-based isolation
+- ALWAYS use NetworkPolicies for separation
+- NEVER allow cross-tenant access
+- ALWAYS implement tenant resource quotas
+- ALWAYS monitor per-tenant usage
+
+## 🚀 CI/CD PIPELINE STANDARDS
+
+### Pipeline Architecture
+- ALWAYS implement multi-stage (build, test, deploy)
+- ALWAYS use pipeline as code
+- NEVER skip automated testing
+- ALWAYS implement artifact management
+- ALWAYS use proper secret management
+- NEVER hardcode credentials
+
+### Deployment Strategies
+- ALWAYS use blue-green for production
+- ALWAYS use canary for new features
+- NEVER deploy without staging
+- ALWAYS implement rollback mechanisms
+- ALWAYS monitor deployments real-time
+
+### Security in CI/CD
+- ALWAYS scan code for vulnerabilities
+- ALWAYS scan container images
+- NEVER deploy vulnerable dependencies
+- ALWAYS implement access controls
+- ALWAYS audit pipeline activities
+- ALWAYS implement code signing
+
+## ☁️ CLOUD PLATFORM STANDARDS
+
+### Google Cloud (Primary)
+- ALWAYS use IAM with least privilege
+- ALWAYS enable audit logging
+- NEVER use default service accounts
+- ALWAYS implement proper VPC design
+- NEVER store secrets in environment variables
+
+### AWS (Secondary/Hybrid)
+- ALWAYS use IAM roles vs access keys
+- ALWAYS implement VPC security groups
+- NEVER use root account for operations
+- ALWAYS enable CloudTrail
+- NEVER allow public S3 buckets without approval
+
+### Multi-Cloud
+- ALWAYS abstract cloud-specific implementations
+- ALWAYS implement data residency controls
+- NEVER create vendor lock-in without justification
+- ALWAYS plan cross-cloud disaster recovery
+
+## 🔒 INFRASTRUCTURE SECURITY
+
+### Network Security
+- ALWAYS implement proper firewall rules
+- ALWAYS use private subnets for apps
+- NEVER allow unrestricted inbound access
+- ALWAYS implement VPN/private connectivity
+- ALWAYS enable network flow logs
+
+### Identity & Access Management
+- ALWAYS implement RBAC policies
+- ALWAYS use service accounts for apps
+- NEVER share credentials between services
+- ALWAYS rotate regularly
+- NEVER use static credentials in production
+
+### Data Protection
+- ALWAYS encrypt at rest and in transit
+- ALWAYS implement proper key management
+- NEVER store unencrypted sensitive data
+- ALWAYS comply with data residency
+- ALWAYS implement retention policies
+
+## 📊 MONITORING & COST MANAGEMENT
+
+### Infrastructure Monitoring
+- ALWAYS monitor resource utilization
+- ALWAYS implement alerting for critical issues
+- ALWAYS implement log aggregation
+- ALWAYS monitor security events
+- NEVER deploy without monitoring
+
+### Cost Management
+- ALWAYS implement cost monitoring/budgets
+- ALWAYS tag resources for allocation
+- ALWAYS implement auto-scaling optimization
+- ALWAYS review usage regularly
+- NEVER over-provision without justification
+
+## 🌍 DISASTER RECOVERY & BACKUP
+
+### Backup Strategies
+- ALWAYS implement automated procedures
+- ALWAYS test restoration regularly
+- NEVER rely on single location
+- ALWAYS encrypt backup data
+- ALWAYS document procedures
+
+### Disaster Recovery
+- ALWAYS implement multi-region DR
+- ALWAYS define/test RTO/RPO objectives
+- ALWAYS implement failover mechanisms
+- NEVER assume DR works without testing
+
+## 📋 COMPLIANCE & GOVERNANCE
+
+### Infrastructure Compliance
+- ALWAYS implement compliance controls
+- ALWAYS audit configurations
+- NEVER ignore regulatory requirements
+- ALWAYS maintain documentation
+- ALWAYS implement change management
+
+### Governance
+- ALWAYS use infrastructure as code
+- ALWAYS use policy as code
+- NEVER allow manual production changes
+- ALWAYS implement approval workflows
+- ALWAYS maintain documentation
+
+## 🔧 OPERATIONAL STANDARDS
+
+### Operations
+- ALWAYS use IaC for all changes
+- ALWAYS implement incident response
+- ALWAYS maintain runbooks
+- ALWAYS implement on-call procedures
+
+### Capacity Planning
+- ALWAYS monitor/plan capacity
+- ALWAYS implement auto-scaling
+- ALWAYS plan for growth/spikes
+- NEVER under-provision critical resources

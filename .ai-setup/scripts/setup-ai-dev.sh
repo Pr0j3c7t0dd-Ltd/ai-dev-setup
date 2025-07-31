@@ -19,7 +19,10 @@ echo "  - Optionally setting up a .devcontainer"
 echo "  - Copying AI rules, prompts, hooks, agents, and commands"
 echo "  - Setting up .claude directory with hooks, agents, and commands"
 echo "  - Copying helper scripts"
+echo "  - Copying .claudeconfig for IDE integration"
 echo "  - Optionally adding a product requirements submodule"
+echo "  - Replacing [PRODUCT_REQS_VAULT_DIR] placeholders with actual path"
+echo "  - Syncing AI rules across different IDEs (Cursor, Windsurf, Claude)"
 echo ""
 
 read -p "📦 Would you like to set up a .devcontainer? (y/n): " SETUP_DEVCONTAINER
@@ -91,6 +94,11 @@ if [ -d ".ai-setup/scripts" ]; then
     echo "✅ Scripts copied to scripts/"
 fi
 
+if [ -f ".ai-setup/ide/.claudeconfig" ]; then
+    cp .ai-setup/ide/.claudeconfig .
+    echo "✅ .claudeconfig copied to root directory"
+fi
+
 echo ""
 read -p "📚 Would you like to add a 'product requirements' git submodule? (y/n): " ADD_SUBMODULE
 if [[ "$ADD_SUBMODULE" =~ ^[Yy]$ ]]; then
@@ -103,9 +111,43 @@ if [[ "$ADD_SUBMODULE" =~ ^[Yy]$ ]]; then
         }
         git submodule update --init --recursive
         echo "✅ Product requirements submodule added"
+        
+        # Replace [PRODUCT_REQS_VAULT_DIR] placeholder with actual path
+        echo "🔄 Updating references to product requirements directory..."
+        PRODUCT_REQS_PATH="$(pwd)/product-requirements"
+        
+        # Find and replace in all files
+        find . -type f -name "*.md" -o -name "*.txt" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" | while read -r file; do
+            if grep -q "\[PRODUCT_REQS_VAULT_DIR\]" "$file" 2>/dev/null; then
+                # Use sed to replace the placeholder
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS sed requires backup extension
+                    sed -i '' "s|\[PRODUCT_REQS_VAULT_DIR\]|$PRODUCT_REQS_PATH|g" "$file"
+                else
+                    # Linux sed
+                    sed -i "s|\[PRODUCT_REQS_VAULT_DIR\]|$PRODUCT_REQS_PATH|g" "$file"
+                fi
+                echo "  ✅ Updated: $file"
+            fi
+        done
+        
+        echo "✅ Product requirements path references updated"
     else
         echo "⚠️  No URL provided, skipping submodule addition"
     fi
+fi
+
+echo ""
+echo "🔄 Running sync-rules.sh to sync AI rules across different IDEs..."
+if [ -f ".ai-setup/scripts/sync-rules.sh" ]; then
+    # Make sure the script is executable
+    chmod +x .ai-setup/scripts/sync-rules.sh
+    # Run the sync script
+    ./.ai-setup/scripts/sync-rules.sh || {
+        echo "⚠️  Warning: sync-rules.sh encountered an error but setup will continue"
+    }
+else
+    echo "⚠️  Warning: sync-rules.sh not found, skipping rules sync"
 fi
 
 echo ""
@@ -115,7 +157,8 @@ echo "📝 Next steps:"
 echo "  1. Review the contents of the .ai-setup folder"
 echo "  2. The .claude directory has been set up with hooks, agents, and commands"
 echo "  3. Scripts have been copied to the scripts folder"
-echo "  4. Customize the rules, prompts, hooks, agents, and slash commands in .ai-setup"
-echo "  5. If you set up a .devcontainer, rebuild your container"
+echo "  4. AI rules have been synced to .cursor, .windsurf, and CLAUDE.md"
+echo "  5. Customize the rules, prompts, hooks, agents, and slash commands in .ai-setup"
+echo "  6. If you set up a .devcontainer, rebuild your container"
 echo ""
 echo "💡 Tip: Consider committing these changes to your repository"

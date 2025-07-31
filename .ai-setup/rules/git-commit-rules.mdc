@@ -1,0 +1,100 @@
+---
+trigger: always_on
+description: Git commit message formatting and conventions for VibeBiz SaaS platform
+globs:
+alwaysApply: true
+---
+# Git Commit Standards - VibeBiz
+
+## Format Requirements
+- ALWAYS use: `type(scope): description`
+- NEVER commit without proper type prefix
+- ALWAYS keep header under 72 characters
+- ALWAYS use lowercase for type and description
+- NEVER end subject line with period
+
+## Required Types
+- **feat**: New feature for users
+- **fix**: Bug fix for users
+- **docs**: Documentation changes
+- **style**: Code style changes
+- **refactor**: Code refactoring without functional changes
+- **test**: Adding or updating tests
+- **chore**: Maintenance tasks (deps, config, etc.)
+- **ci**: CI/CD pipeline changes
+- **build**: Build system changes
+- **revert**: Reverting previous commits
+- **perf**: Performance improvements
+- **security**: Security fixes or improvements
+
+## Good Examples
+```
+feat: add multi-tenant user authentication
+fix: resolve payment processing timeout
+docs: update API documentation for webhooks
+security: implement rate limiting for login attempts
+refactor: extract user validation logic
+test: add integration tests for billing service
+chore: update dependencies to latest versions
+```
+
+## Scope Guidelines (Optional)
+- **auth**: Authentication and authorization
+- **billing**: Payment and subscription logic
+- **api**: API changes
+- **ui**: User interface changes
+- **db**: Database schema or queries
+- **mobile**: Mobile app specific changes
+- **admin**: Admin panel changes
+- **webhook**: Webhook related changes
+
+## Body/Footer (Optional)
+- Separate body from subject with blank line
+- Wrap body at 72 characters
+- Explain WHAT and WHY, not HOW
+- Use imperative mood ("Add" not "Added")
+- Reference breaking changes: `BREAKING CHANGE: <description>`
+- Reference issues: `Fixes #123` or `Closes #456`
+
+## Security Commits
+- Use `security:` type for security-related changes
+- Include CVE numbers when fixing vulnerabilities
+- Never include sensitive information in messages
+- Reference security issue numbers privately
+
+## Multi-tenant Guidelines
+- Include organization context when relevant
+- Never hardcode tenant IDs in messages
+- Use generic terms for multi-tenant features
+- Never expose customer-specific information
+
+## Anti-Patterns (Never Do)
+- Vague descriptions like "fix stuff" or "update"
+- Debugging artifacts or console.log statements
+- Incomplete work without proper WIP handling
+- Profanity or unprofessional language
+- Passwords, API keys, or secrets
+- Messages longer than 72 characters in header
+
+## WIP Handling
+- Use `wip:` prefix for incomplete work
+- Squash WIP commits before merging
+- Never merge WIP commits to main branch
+- Clean up commit history before code review
+
+## Branch Naming
+- Use format: `type/short-description`
+- Examples: `feat/user-dashboard`, `fix/payment-bug`
+- Never use spaces or special characters
+- Use lowercase with hyphens
+
+## Merge Strategy
+- Squash feature branch commits before merging
+- Use conventional commit format for squashed commit
+- Clean up commit history for main branch
+
+## Required Tools
+- **commitlint**: Automated validation
+- **husky**: Git hooks for pre-commit validation
+- **conventional-changelog**: Automatic changelog generation
+- **semantic-release**: Automated version management

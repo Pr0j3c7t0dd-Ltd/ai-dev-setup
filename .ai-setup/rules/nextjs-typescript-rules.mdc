@@ -1,0 +1,197 @@
+---
+trigger: glob
+description: rules for nextjs and typescript best practices
+globs: *.ts, *.tsx
+alwaysApply: false
+---
+# Next.js/TypeScript Standards - VibeBiz
+
+## 🏗️ TYPESCRIPT STANDARDS
+
+### Configuration & Type Safety
+- ALWAYS use strict mode with noUncheckedIndexedAccess
+- NEVER use 'any' without justification comment
+- ALWAYS use const assertions and explicit return types
+- ALWAYS generate types from OpenAPI schemas
+- ALWAYS use branded types for IDs and sensitive data
+- ALWAYS implement type guards and exhaustive switches
+
+### API Integration
+- ALWAYS use auto-generated API client types
+- NEVER manually maintain API types
+- ALWAYS validate API responses at runtime
+- NEVER trust external data without validation
+
+## ⚛️ REACT COMPONENT STANDARDS
+
+### Component Architecture
+- ALWAYS use functional components with hooks
+- ALWAYS use TypeScript interfaces for props
+- ALWAYS implement error boundaries
+- NEVER pass entire objects when specific fields suffice
+- ALWAYS use React.memo for expensive components
+
+### Hooks & State
+- ALWAYS use useCallback for event handlers
+- ALWAYS use useMemo for expensive calculations
+- NEVER create functions inside JSX render
+- ALWAYS use proper dependency arrays
+- ALWAYS prefer useReducer for complex state
+
+### Component Patterns
+- ALWAYS use compound components for complex UI
+- NEVER prop drill more than 2 levels deep
+- ALWAYS use context for global state
+- ALWAYS implement loading and error states
+- NEVER ignore accessibility requirements
+
+## 🎨 STYLING & UI
+
+### Tailwind CSS
+- ALWAYS use Tailwind for styling
+- ALWAYS implement design system spacing
+- NEVER use arbitrary values without approval
+- ALWAYS use CSS variables for theme colors
+- ALWAYS implement mobile-first responsive design
+- ALWAYS use class-variance-authority for variants
+
+### Component Library
+- ALWAYS use shadcn/ui as base library
+- ALWAYS extend rather than replace components
+- NEVER create custom when library versions exist
+- ALWAYS maintain consistent APIs
+- NEVER hardcode colors or spacing
+
+## 🔄 STATE MANAGEMENT
+
+### Global State
+- ALWAYS use Zustand for global state
+- ALWAYS implement proper state slicing
+- NEVER store derived data in state
+- NEVER mutate state directly
+
+### Server State
+- ALWAYS use React Query for API calls
+- ALWAYS implement cache invalidation
+- NEVER fetch in useEffect when React Query available
+- ALWAYS use mutations for modifications
+- ALWAYS implement retry strategies
+
+### Forms
+- ALWAYS use React Hook Form for complex forms
+- ALWAYS implement validation and error handling
+- NEVER trust client-side validation alone
+- ALWAYS use controlled components
+- ALWAYS implement submission states
+
+## 🌐 I18N & ACCESSIBILITY
+
+### Internationalization
+- ALWAYS use next-intl
+- NEVER hardcode user-facing strings
+- ALWAYS implement RTL support
+- ALWAYS test with longer text strings
+
+### Accessibility
+- ALWAYS implement ARIA labels and roles
+- ALWAYS ensure keyboard navigation works
+- NEVER use color alone to convey info
+- ALWAYS maintain proper contrast ratios
+- ALWAYS test with assistive technologies
+
+## 🔒 SECURITY
+
+### Authentication
+- ALWAYS use NextAuth.js
+- ALWAYS implement CSRF protection
+- NEVER store sensitive data in localStorage
+- ALWAYS use httpOnly cookies for tokens
+
+### Input Validation
+- ALWAYS validate and sanitize inputs
+- ALWAYS use Content Security Policy
+- NEVER trust URL parameters
+- ALWAYS implement XSS prevention
+- ALWAYS implement rate limiting
+
+## ⚡ PERFORMANCE
+
+### Code Splitting
+- ALWAYS implement code splitting
+- ALWAYS use dynamic imports for large components
+- ALWAYS optimize bundle size
+- NEVER ignore Core Web Vitals
+
+### Images & Assets
+- ALWAYS use Next.js Image component
+- ALWAYS optimize images (WebP, AVIF)
+- ALWAYS implement lazy loading
+- NEVER ignore alt text
+
+### Runtime
+- ALWAYS implement proper memoization
+- NEVER perform expensive operations in render
+- ALWAYS implement virtualization for long lists
+- ALWAYS debounce expensive operations
+
+## 🚀 NEXT.JS SPECIFICS
+
+### App Router
+- ALWAYS use App Router for new projects
+- NEVER mix with Pages Router
+- ALWAYS use loading.tsx and error.tsx
+- ALWAYS implement proper metadata
+
+### Server Components
+- ALWAYS use Server Components when possible
+- NEVER use for interactive elements
+- ALWAYS use Server Actions for forms
+- ALWAYS implement error handling
+
+### API Routes
+- ALWAYS use proper HTTP status codes
+- NEVER expose internal errors
+- ALWAYS implement middleware
+- ALWAYS validate requests
+
+## 🧪 TESTING
+
+### Component Testing
+- ALWAYS test behavior, not implementation
+- ALWAYS use React Testing Library
+- ALWAYS test accessibility
+- NEVER test internal state directly
+
+### Integration Testing
+- ALWAYS test critical user flows
+- ALWAYS test with realistic data
+- ALWAYS test responsive behavior
+- ALWAYS test keyboard navigation
+
+## 📋 DEVELOPMENT WORKFLOW
+
+### Code Quality
+- ALWAYS use ESLint strict configuration
+- ALWAYS use Prettier formatting
+- ALWAYS use TypeScript strict mode
+- NEVER ignore type errors
+
+### Environment
+- ALWAYS use consistent Node.js version
+- NEVER commit environment secrets
+- ALWAYS implement hot reload
+- ALWAYS document setup procedures
+
+## 📊 MONITORING
+
+### Error Tracking
+- ALWAYS implement comprehensive tracking
+- NEVER ignore client-side errors
+- ALWAYS implement error boundaries
+- NEVER expose sensitive data in logs
+
+### Analytics
+- ALWAYS implement privacy-compliant analytics
+- NEVER track without consent
+- ALWAYS respect privacy settings
+- ALWAYS implement data anonymization

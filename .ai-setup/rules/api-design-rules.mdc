@@ -1,0 +1,171 @@
+---
+trigger: always_on
+description: Rules for api design and configuration
+globs:
+alwaysApply: false
+---
+# VibeBiz API Design - Multi-Tenant Security Standards
+
+## 🚨 CRITICAL REQUIREMENTS
+- Multi-tenant: PostgreSQL RLS for ALL data access, org_id validation
+- Auth: JWT (15min) + API keys, granular permissions, tenant context
+- Security: Zero-trust, HTTPS/HSTS, comprehensive headers, input sanitization
+- Compliance: GDPR/SOC2 built-in, audit logging, no sensitive data exposure
+
+## 🔒 MULTI-TENANT SECURITY
+
+### Row-Level Security (MANDATORY)
+```sql
+CREATE POLICY tenant_isolation ON table_name
+FOR ALL TO application_role
+USING (organization_id = current_setting('app.current_tenant')::uuid);
+```
+
+```python
+# Tenant middleware
+@app.middleware("http")
+async def tenant_context_middleware(request: Request, call_next):
+    if request.url.path.startswith("/v1/orgs/"):
+        org_id = extract_org_id_from_path(request.url.path)
+        user = await get_current_user(request)
+        await ensure_user_belongs_to_org(user, org_id)
+        await set_tenant_context(org_id)
+    return await call_next(request)
+
+# Organization access validation
+async def get_current_user_with_org_access(
+    org_id: str = Path(...),
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if not await user_service.has_org_access(current_user.id, org_id):
+        logger.warning("Unauthorized org access", extra={
+            "user_id": current_user.id, "org_id": org_id
+        })
+        raise HTTPException(403, "Access denied")
+    return current_user
+```
+
+## 🔐 AUTHENTICATION & AUTHORIZATION
+
+### JWT Claims & Permissions
+```python
+class JWTClaims(BaseModel):
+    sub: str  # user_id
+    exp: int  # expiration
+    jti: str  # JWT ID for blacklisting
+    organizations: List[str]
+    permissions: List[str]
+
+def require_permission(permission: str):
+    def permission_dependency(
+        current_user: User = Depends(get_current_user),
+        org_id: str = Depends(get_org_id_from_path)
+    ):
+        if not current_user.has_permission(permission, org_id):
+            raise HTTPException(403, f"Missing permission: {permission}")
+        return current_user
+    return Depends(permission_dependency)
+```
+
+## 📝 INPUT VALIDATION
+
+### Pydantic Standards
+```python
+class UserCreate(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+    full_name: str = Field(..., pattern=r'^[a-zA-Z\s\-\.\']+$')
+    password: SecretStr = Field(..., min_length=12)
+
+    @field_validator('full_name')
+    @classmethod
+    def sanitize_name(cls, v: str) -> str:
+        return html.escape(v.strip())
+
+    model_config = ConfigDict(validate_assignment=True, str_strip_whitespace=True)
+```
+
+## 🌐 API DESIGN
+
+### RESTful Patterns
+```python
+# Standard endpoint patterns
+GET    /v1/orgs/{org_id}/projects          # List
+POST   /v1/orgs/{org_id}/projects          # Create
+GET    /v1/orgs/{org_id}/projects/{id}     # Get/Update/Delete
+```
+
+### Pagination (Cursor-based)
+```python
+class PaginationParams(BaseModel):
+    cursor: Optional[str] = None
+    limit: int = Field(20, ge=1, le=100)
+    sort: Optional[str] = "created_at"
+    order: Literal["asc", "desc"] = "desc"
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    next_cursor: Optional[str]
+    has_more: bool
+```
+
+## ⚡ PERFORMANCE & SECURITY
+
+### Rate Limiting & Headers
+```python
+@router.post("/v1/orgs/{org_id}/projects")
+@limiter.limit("10/minute")
+async def create_project(
+    request: Request,
+    current_user: User = require_permission("projects.create")
+):
+    user_limit = get_user_rate_limit(current_user.subscription_tier)
+    if not await check_user_rate_limit(current_user.id, user_limit):
+        raise HTTPException(429, "Rate limit exceeded")
+
+# Security headers middleware
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.update({
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+    })
+    response.headers.pop("Server", None)
+    return response
+```
+
+## 📊 ERROR HANDLING
+
+### Structured Responses
+```python
+class ErrorResponse(BaseModel):
+    error: str
+    message: str
+    correlation_id: str
+    timestamp: datetime
+    details: Optional[Dict[str, Any]] = None
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    correlation_id = getattr(request.state, 'correlation_id', str(uuid.uuid4()))
+    logger.error("HTTP exception", extra={
+        "correlation_id": correlation_id,
+        "status_code": exc.status_code,
+        "path": request.url.path
+    })
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error=exc.__class__.__name__,
+            message=str(exc.detail),
+            correlation_id=correlation_id,
+            timestamp=datetime.utcnow()
+        ).model_dump()
+    )
+```
+
+**ALWAYS**: RLS policies, org validation, correlation IDs, OpenAPI docs
+**NEVER**: Bypass auth, expose internals, log secrets, skip rate limits

@@ -1,0 +1,167 @@
+---
+trigger: always_on
+description: Rules for testing best practices
+globs:
+alwaysApply: false
+---
+# VibeBiz Testing Standards - Hybrid Framework
+
+## 🚨 CRITICAL REQUIREMENTS (MUST PASS)
+
+### Coverage Thresholds
+- **Package-local**: 80% minimum (unit/component tests in packages)
+- **Cross-cutting**: 90% minimum (system-wide integration/security/E2E)
+- **Security**: 100% auth/authz coverage
+- **Multi-tenant**: Always test org isolation in integration tests
+- **API**: 100% integration coverage for all endpoints
+
+### Hybrid Architecture
+1. **Package-local** - Fast unit/component tests within packages (`apps/*/tests/`, `services/*/tests/`)
+2. **Cross-cutting** - System tests in central `tests/` directory (integration, security, performance, E2E, accessibility)
+
+## 🔬 PACKAGE-LOCAL STANDARDS
+
+### Python (pytest)
+- Mock external dependencies, use Factory Boy for data, test behavior not implementation
+- Test success/failure/edge cases, use `@pytest.mark.unit`
+
+### TypeScript (Jest + React Testing Library)
+- Test user interactions not implementation, mock APIs/services, test accessibility/error states
+- Never use shallow rendering, always use AAA pattern (Arrange-Act-Assert)
+
+```javascript
+// AAA Pattern Example
+describe('Component', () => {
+  it('should handle interaction', () => {
+    const mockHandler = jest.fn();
+    render(<Button onClick={mockHandler}>Click</Button>);
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+## 🔗 CROSS-CUTTING INTEGRATION TESTS
+
+### Multi-Tenant Integration
+- Real database, multiple orgs, clean data between tests, test DB constraints
+- Use `crossCuttingTestUtils.createMultiTenantData()`
+
+### API Integration
+- Complete request/response cycles, auth/authz, error responses (4xx/5xx), rate limiting
+- Use `crossCuttingTestUtils.createApiTestClient()`
+
+### Service Integration
+- Service-to-service communication, events/queues, timeouts/retries, circuit breakers
+
+## 🌐 E2E TESTING
+
+### Requirements
+- Complete user workflows, cross-org scenarios, realistic data, mobile/desktop viewports
+- Critical paths: registration/org setup, auth+MFA, org switching, payments, projects, API keys
+
+### Tools
+- Playwright + Page Object Model, never hardcode test data, multiple user roles, no flaky tests
+
+## 🔒 SECURITY TESTING
+
+### Implementation
+- OWASP Top 10 tests (`tests/security/owasp-top10.test.js`), auth bypass scenarios
+- Input validation, SQL injection prevention, multi-tenant data isolation
+- Use `crossCuttingTestUtils.createSecurityTestUtils()`
+
+## ⚡ PERFORMANCE TESTING
+
+### Targets
+- API: <200ms normal load, DB queries: <100ms simple, Pages: <3s initial/<1s subsequent
+- File uploads: 100MB support, Concurrent users: 1000+, Data processing: 10k+ records
+- Use `crossCuttingTestUtils.createPerformanceTestUtils()`
+
+## ♿ ACCESSIBILITY (WCAG 2.2 AA)
+
+### Requirements
+- Screen readers (NVDA/JAWS/VoiceOver), keyboard navigation, color contrast (4.5:1/3:1)
+- ARIA labels/roles, focus indicators, alt text, form labels
+- Use `@axe-core/playwright`
+
+## 🛠️ TOOLING
+
+### Package-Local
+- **Python**: pytest, pytest-asyncio, pytest-cov, factory-boy
+- **TypeScript**: Jest, React Testing Library, MSW, Playwright
+
+### Cross-Cutting
+- **Integration**: Jest (custom config), **Security**: OWASP ZAP/Bandit/Semgrep
+- **Performance**: K6/Artillery, **Accessibility**: axe-core/Pa11y
+
+### Test Utilities
+```javascript
+// Package-local (jest.setup.js)
+global.testUtils = {
+  createMockUser: (overrides) => ({...}),
+  mockApiResponse: (data, status) => ({...})
+};
+
+// Cross-cutting (tests/config/jest.setup.js)
+global.crossCuttingTestUtils = {
+  createMultiTenantData: () => ({...}),
+  createApiTestClient: (baseURL) => ({...}),
+  createSecurityTestUtils: () => ({...})
+};
+```
+
+## 🔄 DEVELOPER WORKFLOW
+
+### Commands
+```bash
+# Daily development
+pnpm test:watch              # Fast feedback
+pnpm test                    # Package-local tests
+
+# Pre-commit
+pnpm test:cross-cutting      # System-wide tests
+pnpm test:security           # Security tests
+
+# Pre-deployment
+pnpm test:all                # Everything
+pnpm test:performance        # Performance validation
+```
+
+### Scripts
+```json
+{
+  "test": "turbo run test",
+  "test:cross-cutting": "jest --config tests/jest.config.js",
+  "test:security": "jest --config tests/jest.config.js --testPathPattern=security",
+  "test:all": "npm run test && npm run test:cross-cutting"
+}
+```
+
+## 📊 DATA MANAGEMENT
+
+### Shared Test Data (`tests/fixtures/shared-data.json`)
+Organizations, users, documents, API responses, performance benchmarks, security payloads
+
+### Principles
+- Use factories, never hardcode values, realistic scenarios, clean up after tests
+- **Multi-tenant**: Separate orgs per test, validate isolation, multiple roles per org
+
+## 📋 QUALITY GATES (ALL REQUIRED)
+
+### Before Merge
+✅ Package-local pass (80%), cross-cutting pass (90%), security pass (100% auth), performance within limits, accessibility WCAG 2.2 AA, no flaky tests
+
+### CI/CD Pipeline
+```yaml
+unit-tests: pnpm test
+integration-tests:
+  needs: unit-tests
+  run: pnpm test:cross-cutting && pnpm test:security
+```
+
+## 🚫 NEVER DO
+- Order-dependent tests, sleep()/timeouts, test private methods, manual setup
+- Ignore flaky tests, multiple concerns per test, mix package-local/cross-cutting
+- Hardcode org IDs, share test environments, use production data
+
+Environment: Isolated test DBs, Docker consistency, clean data between tests

@@ -1,0 +1,181 @@
+---
+trigger: always_on
+description:
+globs:
+alwaysApply: true
+---
+# Security & Compliance Standards - VibeBiz
+
+## 🚨 CRITICAL SECURITY RULES
+
+### Multi-Tenant Security (HIGHEST PRIORITY)
+- ALWAYS implement Row-Level Security (RLS) for tenant tables
+- NEVER query without organization_id filtering
+- ALWAYS validate user belongs to organization before access
+- ALWAYS use current_setting('app.current_org_id') in RLS policies
+- NEVER hardcode tenant IDs in code
+- ALWAYS validate tenant context in API middleware
+
+### Authentication & Authorization
+- NEVER store plaintext passwords - use bcrypt/argon2 only
+- ALWAYS implement JWT validation with proper expiration
+- NEVER expose admin endpoints without RBAC
+- ALWAYS check permissions at API and database level
+- NEVER trust client-side user roles
+- ALWAYS implement API key authentication
+- NEVER log tokens, API keys, or credentials
+
+### SQL Injection & Secrets
+- ALWAYS use parameterized queries via SQLAlchemy ORM
+- NEVER concatenate user input into SQL strings
+- ALWAYS validate and sanitize database inputs
+- NEVER commit secrets, API keys, credentials to git
+- ALWAYS use environment variables for sensitive config
+- NEVER hardcode Stripe keys, passwords, OAuth secrets
+
+## 🛡️ SUPPLY-CHAIN SECURITY (SLSA LEVEL 3)
+
+### Implementation
+- ALWAYS implement SLSA Level 3 provenance for build artifacts
+- ALWAYS sign container images with Cosign
+- ALWAYS generate and attest SBOMs for containers
+- ALWAYS scan containers with Trivy for vulnerabilities
+- ALWAYS use Gitleaks for secret scanning in CI/CD
+- NEVER deploy unsigned/unverified images to production
+
+### Container Security
+- ALWAYS scan images for vulnerabilities before deployment
+- ALWAYS use distroless or minimal base images
+- NEVER run containers as root user
+- ALWAYS implement resource limits and security contexts
+- NEVER deploy with HIGH/CRITICAL vulnerabilities
+
+## 🏗️ OWASP TOP 10 2021 PREVENTION
+
+### A01: Broken Access Control
+- ALWAYS implement authorization checks before resource access
+- NEVER rely on client-side access control
+- ALWAYS validate user permissions at API layer
+- NEVER expose direct object references without authorization
+
+### A02: Cryptographic Failures
+- ALWAYS use strong encryption for data at rest/transit
+- NEVER use deprecated algorithms (MD5, SHA1, DES)
+- ALWAYS use proper key management practices
+- NEVER hardcode encryption keys
+
+### A03: Injection
+- ALWAYS use parameterized queries for database operations
+- NEVER concatenate user input into SQL/NoSQL/command strings
+- ALWAYS validate and sanitize all user inputs
+- NEVER execute user-provided code
+
+### A04-A10: Additional Controls
+- **Insecure Design**: Implement security by design, threat modeling
+- **Security Misconfiguration**: Use secure defaults, proper error handling
+- **Vulnerable Components**: Scan dependencies, keep updated
+- **Authentication Failures**: Implement MFA, strong passwords, session management
+- **Software/Data Integrity**: Verify checksums, secure CI/CD pipeline
+- **Security Logging**: Log security events, real-time monitoring
+- **SSRF**: Validate URLs, implement allowlists, network segmentation
+
+## 🔒 AUTHENTICATION & SESSION MANAGEMENT
+
+### JWT & Sessions
+- ALWAYS use HS256 or RS256 algorithms for JWT signing
+- NEVER use 'none' algorithm for JWT tokens
+- ALWAYS implement proper expiration (15min access, 7day refresh)
+- NEVER store JWTs in localStorage (use httpOnly cookies)
+- ALWAYS implement token rotation and blacklisting
+- ALWAYS use secure, httpOnly, sameSite cookies
+- ALWAYS regenerate session IDs after authentication
+
+### Multi-Factor Authentication
+- ALWAYS offer MFA for all user accounts
+- ALWAYS require MFA for administrative accounts
+- NEVER store MFA secrets in plain text
+- ALWAYS provide backup codes for recovery
+- ALWAYS implement rate limiting for MFA attempts
+
+## 🏢 SOC 2 TYPE II COMPLIANCE
+
+### Security Controls (CC6.1-CC6.8)
+- ALWAYS implement comprehensive audit logging
+- ALWAYS monitor access controls and permissions
+- NEVER allow unauthorized access to customer data
+- ALWAYS implement incident response procedures
+- ALWAYS maintain backup and recovery capabilities
+
+### Availability & Processing Integrity
+- ALWAYS implement health checks and monitoring
+- ALWAYS maintain 99.9% uptime SLA
+- NEVER deploy without rollback capabilities
+- ALWAYS implement circuit breakers and graceful degradation
+- ALWAYS validate data integrity during processing
+- ALWAYS audit all data processing operations
+
+## 📋 GDPR COMPLIANCE
+
+### Data Subject Rights
+- ALWAYS implement data portability (Article 20)
+- ALWAYS provide data access mechanisms (Article 15)
+- ALWAYS implement right to erasure (Article 17)
+- NEVER process data without lawful basis (Article 6)
+- ALWAYS implement privacy by design (Article 25)
+
+### Consent & Data Protection
+- ALWAYS obtain explicit consent for data processing
+- NEVER use pre-checked consent boxes
+- ALWAYS allow easy consent withdrawal
+- ALWAYS implement data minimization principles
+- NEVER collect unnecessary personal data
+- ALWAYS encrypt personal data at rest/transit
+- ALWAYS implement data retention policies
+
+## 🔧 IMPLEMENTATION
+
+### Code & Infrastructure Security
+- ALWAYS use static analysis tools (Semgrep, Bandit, ESLint)
+- NEVER ignore security warnings without justification
+- ALWAYS implement input validation with proper libraries
+- NEVER trust user input without sanitization
+- ALWAYS implement network segmentation and firewalls
+- NEVER expose internal services to internet
+- ALWAYS use least privilege access principles
+- NEVER skip security updates and patches
+
+### Data Security
+- ALWAYS encrypt sensitive data with AES-256 or equivalent
+- NEVER store encryption keys with encrypted data
+- ALWAYS implement key rotation policies
+- NEVER expose sensitive data in logs/errors
+- NEVER allow unauthorized data access
+
+## 🚫 ANTI-PATTERNS
+
+Never Do:
+- Use eval() or dynamic code execution
+- Trust user input without validation
+- Implement custom cryptography
+- Use HTTP for production APIs
+- Skip security testing in CI/CD
+- Ignore vulnerability reports
+- Hardcode secrets or credentials
+- Disable security features for convenience
+
+## 📊 QUALITY GATES
+
+### Automated Checks
+- ✅ Static security analysis passes (Semgrep, Bandit)
+- ✅ Dependency vulnerability scan passes
+- ✅ Container security scan passes
+- ✅ Secret scanning passes (Gitleaks)
+- ✅ Infrastructure security scan passes (Checkov)
+- ✅ OWASP ZAP dynamic testing passes
+
+### Manual Review
+- ✅ Security architecture review for new features
+- ✅ Threat modeling for high-risk changes
+- ✅ Penetration testing for major releases
+- ✅ Privacy impact assessment for data changes
+- ✅ Compliance review for regulatory requirements

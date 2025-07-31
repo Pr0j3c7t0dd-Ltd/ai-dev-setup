@@ -1,0 +1,75 @@
+---
+trigger: always_on
+description:
+globs:
+alwaysApply: true
+---
+# VibeBiz Development Standards
+
+## 🚨 CRITICAL SECURITY - NEVER VIOLATE
+
+### Multi-Tenant Security
+- ALWAYS: RLS for tenant tables, org_id validation, current_setting('app.current_org_id')
+- NEVER: Query without org isolation, hardcode tenant IDs, trust client roles
+
+### Authentication & Secrets
+- ALWAYS: bcrypt/argon2 passwords, JWT expiration, RBAC, parameterized queries, env vars
+- NEVER: Plaintext passwords, expose admin endpoints, concatenate SQL input, commit secrets, log credentials
+
+## 🏗️ CODE QUALITY
+
+### TypeScript/JavaScript
+- ALWAYS: Strict mode, OpenAPI types, Tailwind CSS, error boundaries
+- NEVER: 'any' without justification, inline styles
+
+### Python/FastAPI
+- ALWAYS: Type hints, Pydantic models, async/await DB, response models
+- NEVER: Return raw DB objects
+
+### Database & APIs
+- ALWAYS: Alembic migrations, rollback logic, transactions, created_at/updated_at, /v1/ versioning, proper HTTP codes, rate limiting, pagination
+- NEVER: CASCADE deletes without justification, expose stack traces, unlimited datasets
+
+## 🧪 TESTING (80% COVERAGE MINIMUM)
+
+### Required Test Types
+- **Unit**: Mock dependencies, test behavior (not implementation)
+- **Integration**: Real DB, Testcontainers, service interactions
+- **E2E**: Critical journeys, org switching, payments
+- **Security**: OWASP ZAP, SQL injection, multi-tenant isolation
+
+## 🚀 PERFORMANCE
+
+### Database & Frontend & APIs
+- ALWAYS: Indexes for frequent queries, connection pooling, pagination, code splitting, image optimization, React.memo, caching, compression
+- NEVER: N+1 queries, long queries without pagination, skip Core Web Vitals
+
+## 🌐 ACCESSIBILITY & I18N
+- **WCAG 2.2 AA**: ARIA labels, keyboard nav, 4.5:1 contrast, no color-only info
+- **I18N**: next-intl, no hardcoded strings, RTL support
+
+## 🤖 AI/LLM & 📱 MOBILE
+- **AI Security**: Validate schemas, auth functions, rate limit agents, sandbox execution
+- **AI Monitoring**: Track costs/tokens, fallbacks, audit logs
+- **Mobile Security**: Expo SecureStore, no AsyncStorage keys, certificate pinning
+- **Mobile Performance**: Bundle optimization, iOS/Android testing, low-end devices
+
+## 🏢 ENTERPRISE & COMPLIANCE
+- **Deployment**: Terraform, health checks, blue-green, rollback procedures
+- **GDPR**: Audit logging, data export/erasure, retention policies
+- **SOC 2**: Access controls, encryption, backup/recovery, admin attribution
+
+## 📋 QUALITY GATES (MUST PASS)
+
+### Automated
+- ✅ 80% test coverage, TypeScript/mypy, ESLint/Prettier, OWASP ZAP, axe-core, performance budgets
+
+### Manual
+- ✅ Code review, security review (auth changes), documentation updates
+
+## 🚫 ANTI-PATTERNS
+NEVER: eval(), trust user input, custom crypto, HTTP in prod, skip error handling, magic numbers, God objects, memory leaks
+
+---
+**Enforcement**: Pre-commit hooks, CI/CD, code review
+**Security violations = immediate PR rejection**

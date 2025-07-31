@@ -1,0 +1,200 @@
+---
+trigger: model_decision
+description: rules for mobile development using react native best practices
+globs:
+alwaysApply: false
+---
+# Mobile Development Standards - VibeBiz React Native + Expo
+
+## 🚨 CRITICAL REQUIREMENTS
+
+### Platform Compatibility
+- ALWAYS test on both iOS and Android devices
+- ALWAYS use Expo managed workflow
+- NEVER use platform-specific code without abstraction
+- ALWAYS test on physical devices, not just simulators
+- ALWAYS implement responsive design for screen sizes
+
+### Performance Requirements
+- ALWAYS optimize for 60fps on target devices
+- ALWAYS implement image optimization and lazy loading
+- NEVER block main thread with heavy computations
+- ALWAYS use FlatList for large datasets
+- NEVER ignore performance monitoring
+
+### Security & Data Protection
+- ALWAYS use Expo SecureStore for sensitive data
+- NEVER store API keys in AsyncStorage
+- ALWAYS implement certificate pinning
+- NEVER trust client-side validation alone
+- ALWAYS validate deep linking properly
+
+## 📱 EXPO & REACT NATIVE STANDARDS
+
+### Expo Configuration
+- ALWAYS use EAS Build for consistent builds
+- ALWAYS configure app.json/app.config.js properly
+- NEVER hardcode environment-specific values
+- ALWAYS use Expo SDK packages when available
+- ALWAYS implement proper versioning strategy
+
+### React Native Best Practices
+- ALWAYS use TypeScript with strict configuration
+- ALWAYS use React Navigation for navigation
+- NEVER use deprecated components
+- ALWAYS implement proper state management (Zustand/Redux)
+- ALWAYS follow feature-based folder structure
+
+### Code Organization
+- ALWAYS separate platform code with .ios/.android extensions
+- NEVER mix business logic with UI components
+- ALWAYS use custom hooks for complex logic
+- ALWAYS implement error boundaries
+- NEVER create monolithic components
+
+## 🎨 UI/UX DESIGN STANDARDS
+
+### Cross-Platform Design
+- ALWAYS follow platform guidelines (iOS HIG, Material Design)
+- ALWAYS implement proper touch targets (44pt iOS, 48dp Android)
+- ALWAYS use appropriate spacing/typography per platform
+- ALWAYS implement accessibility features
+- NEVER create inconsistent UX across platforms
+
+### Responsive Design
+- ALWAYS design for multiple screen sizes/orientations
+- ALWAYS use Flexbox for layouts
+- NEVER hardcode dimensions
+- ALWAYS test on tablets and foldables
+- ALWAYS handle safe areas properly
+
+### Component Libraries
+- ALWAYS use React Native Elements or similar
+- ALWAYS create reusable VibeBiz component library
+- ALWAYS implement theming and dark mode
+- ALWAYS use vector icons vs raster
+- NEVER ignore accessibility properties
+
+## 🔗 API & DATA MANAGEMENT
+
+### API Communication
+- ALWAYS use React Query/TanStack for API state
+- ALWAYS implement error handling and retry logic
+- NEVER make calls without authentication
+- ALWAYS cache responses appropriately
+- NEVER ignore offline scenarios
+
+### Authentication
+- ALWAYS use Expo AuthSession for OAuth
+- ALWAYS store tokens with SecureStore
+- NEVER store tokens in plain text
+- ALWAYS implement token refresh
+- ALWAYS handle auth errors gracefully
+
+### Offline Support
+- ALWAYS implement offline persistence (SQLite/Realm)
+- ALWAYS sync when connection restored
+- ALWAYS implement conflict resolution
+- ALWAYS provide network status feedback
+- NEVER assume constant connectivity
+
+## 🧪 TESTING STANDARDS
+
+### Unit Testing
+- ALWAYS test hooks with @testing-library/react-hooks
+- ALWAYS test components with @testing-library/react-native
+- ALWAYS mock external dependencies
+- ALWAYS test error scenarios
+- NEVER test implementation details
+
+### Integration & E2E Testing
+- ALWAYS test API integration with real backend
+- ALWAYS test auth flows end-to-end
+- ALWAYS use Maestro or Detox for E2E
+- ALWAYS test on both platforms
+- ALWAYS test app backgrounding/restoration
+
+## 🔔 NOTIFICATIONS & BACKGROUND
+
+### Push Notifications
+- ALWAYS use Expo Notifications API
+- ALWAYS handle permissions properly
+- NEVER send without user consent
+- ALWAYS implement categories and actions
+- ALWAYS track delivery
+
+### Background Tasks
+- ALWAYS use Expo TaskManager
+- ALWAYS respect platform execution limits
+- NEVER perform heavy background operations
+- ALWAYS implement proper sync
+- NEVER ignore battery optimization
+
+## 📦 BUILD & DEPLOYMENT
+
+### Build Configuration
+- ALWAYS use EAS Build for cross-platform
+- ALWAYS configure profiles (dev/staging/prod)
+- NEVER include dev tools in production
+- ALWAYS implement code signing
+- ALWAYS optimize bundle size
+
+### App Store Deployment
+- ALWAYS follow store guidelines
+- ALWAYS implement ASO
+- ALWAYS prepare proper assets
+- ALWAYS manage versions properly
+- NEVER ignore store feedback
+
+### CI/CD Pipeline
+- ALWAYS implement automated testing
+- ALWAYS test multiple device configs
+- ALWAYS implement security scanning
+- NEVER skip performance testing
+
+## 🔧 DEVELOPMENT TOOLS
+
+### Environment
+- ALWAYS use Expo CLI and EAS CLI
+- ALWAYS use TypeScript strict mode
+- ALWAYS use ESLint/Prettier
+- ALWAYS implement error tracking (Sentry)
+- NEVER commit debugging code
+
+### Performance Monitoring
+- ALWAYS track startup time and memory
+- ALWAYS monitor crash rates
+- ALWAYS track network performance
+- ALWAYS monitor user engagement
+- NEVER deploy without monitoring
+
+## 🚫 ANTI-PATTERNS
+
+Never Do:
+- Use index as FlatList key without unique data
+- Block main thread with operations
+- Ignore memory leaks and retain cycles
+- Use setTimeout for critical functionality
+- Hardcode API URLs or config values
+- Use deprecated APIs
+- Skip testing on older devices
+- Assume infinite battery/fast network
+
+## 📋 QUALITY GATES
+
+### Required Before Release
+- ✅ Tested on iOS and Android devices
+- ✅ 60fps performance, <3s startup
+- ✅ Accessibility implemented and tested
+- ✅ Push notifications working
+- ✅ Offline functionality tested
+- ✅ Auth flows tested end-to-end
+- ✅ Store guidelines compliance verified
+- ✅ Security review completed
+
+### Ongoing Monitoring
+- ✅ Performance metrics tracked
+- ✅ Crash rates monitored
+- ✅ User feedback addressed
+- ✅ Security vulnerabilities monitored
+- ✅ Platform compatibility verified
