@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".ai-setup/scripts/afplay /System/Library/Sounds/Hero.aiff --volume 0.3"
+            "command": ".ai-setup/scripts/afplay .ai-setup/sounds/Hero.aiff --volume 0.3"
           }
         ]
       },
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".ai-setup/scripts/afplay /System/Library/Sounds/Glass.aiff --volume 0.3"
+            "command": ".ai-setup/scripts/afplay .ai-setup/sounds/Glass.aiff --volume 0.3"
           }
         ]
       }
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".ai-setup/scripts/afplay /System/Library/Sounds/Ping.aiff --volume 0.5"
+            "command": ".ai-setup/scripts/afplay .ai-setup/sounds/Ping.aiff --volume 0.5"
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".ai-setup/scripts/afplay /System/Library/Sounds/Glass.aiff"
+            "command": ".ai-setup/scripts/afplay .ai-setup/sounds/Glass.aiff"
           }
         ]
       }
