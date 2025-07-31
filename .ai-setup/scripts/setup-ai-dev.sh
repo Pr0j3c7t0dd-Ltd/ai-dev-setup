@@ -3,7 +3,7 @@
 set -e
 
 # Version number for the setup script
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.0.4"
 
 REPO_URL="https://github.com/Pr0j3c7t0dd-Ltd/ai-dev-setup"
 BRANCH="main"
@@ -21,7 +21,7 @@ echo "📋 This script will set up your repository for AI development by:"
 echo "  - Optionally setting up a .devcontainer"
 echo "  - Copying AI rules, prompts, agents, and commands"
 echo "  - Setting up .claude directory with agents and commands"
-echo "  - Copying helper scripts"
+echo "  - Making helper scripts executable in .ai-setup/scripts/"
 echo "  - Copying .claudeconfig and settings.json for Claude IDE integration"
 echo "  - Optionally adding a product requirements submodule"
 echo "  - Replacing [PRODUCT_REQS_VAULT_DIR] placeholders with actual path"
@@ -367,9 +367,13 @@ if [ -d ".ai-setup/commands" ] && [ "$(ls -A .ai-setup/commands/)" ]; then
 fi
 
 if [ -d ".ai-setup/scripts" ]; then
-    mkdir -p scripts
-    [ "$(ls -A .ai-setup/scripts/)" ] && cp -r .ai-setup/scripts/* scripts/
-    echo "✅ Scripts copied to scripts/"
+    # Make scripts executable
+    chmod +x .ai-setup/scripts/*.sh 2>/dev/null || true
+    if [ -f ".ai-setup/scripts/afplay" ]; then
+        chmod +x .ai-setup/scripts/afplay
+    fi
+    echo "✅ Scripts in .ai-setup/scripts/ made executable"
+    echo "ℹ️  Scripts are available in .ai-setup/scripts/ (not copied to project root)"
 fi
 
 if [ -f ".ai-setup/ide/claude/.claudeconfig" ]; then
@@ -378,8 +382,20 @@ if [ -f ".ai-setup/ide/claude/.claudeconfig" ]; then
 fi
 
 if [ -f ".ai-setup/ide/claude/settings.json" ]; then
-    cp .ai-setup/ide/claude/settings.json .claude/
-    echo "✅ settings.json copied to .claude directory"
+    # Check if we're in a container environment
+    if [ -f "/.dockerenv" ] || [ -n "$DEVCONTAINER" ] || [ -n "$CODESPACES" ]; then
+        # Use devcontainer-specific settings if available
+        if [ -f ".ai-setup/ide/claude/settings-devcontainer.json" ]; then
+            cp .ai-setup/ide/claude/settings-devcontainer.json .claude/settings.json
+            echo "✅ settings-devcontainer.json copied to .claude/settings.json (container environment detected)"
+        else
+            cp .ai-setup/ide/claude/settings.json .claude/
+            echo "✅ settings.json copied to .claude directory"
+        fi
+    else
+        cp .ai-setup/ide/claude/settings.json .claude/
+        echo "✅ settings.json copied to .claude directory"
+    fi
 fi
 
 echo ""
@@ -446,7 +462,7 @@ echo ""
 echo "📝 Next steps:"
 echo "  1. Review the contents of the .ai-setup folder"
 echo "  2. The .claude directory has been set up with agents, commands, and settings"
-echo "  3. Scripts have been copied to the scripts folder"
+echo "  3. Scripts are available in .ai-setup/scripts/ (executable)"
 echo "  4. AI rules have been synced to .cursor, .windsurf, and CLAUDE.md"
 echo "  5. Customize the rules, prompts, agents, and slash commands in .ai-setup"
 echo "  6. If you set up a .devcontainer, rebuild your container"

@@ -1,0 +1,110 @@
+#!/bin/bash
+# Universal afplay wrapper - works on macOS and Linux
+# On macOS: uses native afplay
+# On Linux: uses paplay/sox/mpg123
+
+if [ $# -eq 0 ]; then
+    echo "Usage: afplay <audiofile> [options]"
+    exit 0  # Exit silently for no args
+fi
+
+# Check if we're on macOS and have native afplay
+if [[ "$OSTYPE" == "darwin"* ]] && command -v /usr/bin/afplay &> /dev/null; then
+    # Use native macOS afplay
+    exec /usr/bin/afplay "$@"
+fi
+
+# Linux/container environment - parse arguments
+FILE=""
+VOLUME=""
+ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --volume|-v)
+            VOLUME="$2"
+            shift 2
+            ;;
+        *)
+            if [ -z "$FILE" ]; then
+                FILE="$1"
+            else
+                ARGS+=("$1")
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$FILE" ]; then
+    echo "Error: No audio file specified" >&2
+    exit 0  # Exit silently
+fi
+
+if [ ! -f "$FILE" ]; then
+    echo "Error: File not found: $FILE" >&2
+    exit 0  # Exit silently
+fi
+
+# Get file extension
+EXT="${FILE##*.}"
+EXT_LOWER=$(echo "$EXT" | tr '[:upper:]' '[:lower:]')
+
+# Set volume for Linux audio players (0.0 to 1.0 scale)
+if [ -n "$VOLUME" ]; then
+    # Convert volume to percentage for some players
+    if command -v bc &> /dev/null; then
+        VOL_PERCENT=$(echo "$VOLUME * 100" | bc | cut -d. -f1)
+    else
+        # Fallback without bc
+        VOL_PERCENT=$(awk "BEGIN {printf \"%.0f\", $VOLUME * 100}")
+    fi
+fi
+
+# Try to play using paplay for WAV files
+if [ "$EXT_LOWER" = "wav" ] || [ "$EXT_LOWER" = "aiff" ]; then
+    if command -v paplay &> /dev/null; then
+        if [ -n "$VOLUME" ]; then
+            if command -v bc &> /dev/null; then
+                paplay --volume=$(echo "$VOLUME * 65536" | bc | cut -d. -f1) "$FILE" 2>/dev/null
+            else
+                paplay --volume=$(awk "BEGIN {printf \"%.0f\", $VOLUME * 65536}") "$FILE" 2>/dev/null
+            fi
+        else
+            paplay "$FILE" 2>/dev/null
+        fi
+    elif command -v aplay &> /dev/null; then
+        aplay "$FILE" 2>/dev/null
+    else
+        echo "Error: No audio player found for WAV/AIFF files" >&2
+        exit 0
+    fi
+else
+    # For other formats, use sox or mpg123
+    if command -v play &> /dev/null; then
+        if [ -n "$VOLUME" ]; then
+            play -v "$VOLUME" "$FILE" 2>/dev/null
+        else
+            play "$FILE" 2>/dev/null
+        fi
+    elif [ "$EXT_LOWER" = "mp3" ] && command -v mpg123 &> /dev/null; then
+        if [ -n "$VOL_PERCENT" ]; then
+            if command -v bc &> /dev/null; then
+                mpg123 -q -f $(echo "$VOL_PERCENT * 327" | bc | cut -d. -f1) "$FILE" 2>/dev/null
+            else
+                mpg123 -q -f $(awk "BEGIN {printf \"%.0f\", $VOL_PERCENT * 327}") "$FILE" 2>/dev/null
+            fi
+        else
+            mpg123 -q "$FILE" 2>/dev/null
+        fi
+    elif command -v ffplay &> /dev/null; then
+        if [ -n "$VOLUME" ]; then
+            ffplay -nodisp -autoexit -volume "$VOL_PERCENT" "$FILE" 2>/dev/null
+        else
+            ffplay -nodisp -autoexit "$FILE" 2>/dev/null
+        fi
+    else
+        # No audio player found - exit silently
+        exit 0
+    fi
+fi
