@@ -2,6 +2,15 @@
   "hooks": {
     "PostToolUse": [
       {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Hero.aiff --volume 0.3"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|MultiEdit|Write",
         "hooks": [
           {
@@ -13,7 +22,6 @@
     ],
     "Notification": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
@@ -24,11 +32,20 @@
     ],
     "Stop": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
             "command": "afplay /System/Library/Sounds/Ping.aiff --volume 0.5"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
           }
         ]
       }

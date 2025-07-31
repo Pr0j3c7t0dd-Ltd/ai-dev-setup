@@ -16,10 +16,10 @@ fi
 
 echo "📋 This script will set up your repository for AI development by:"
 echo "  - Optionally setting up a .devcontainer"
-echo "  - Copying AI rules, prompts, hooks, agents, and commands"
-echo "  - Setting up .claude directory with hooks, agents, and commands"
+echo "  - Copying AI rules, prompts, agents, and commands"
+echo "  - Setting up .claude directory with agents and commands"
 echo "  - Copying helper scripts"
-echo "  - Copying .claudeconfig for IDE integration"
+echo "  - Copying .claudeconfig and settings.json for Claude IDE integration"
 echo "  - Optionally adding a product requirements submodule"
 echo "  - Replacing [PRODUCT_REQS_VAULT_DIR] placeholders with actual path"
 echo "  - Syncing AI rules across different IDEs (Cursor, Windsurf, Claude)"
@@ -69,14 +69,9 @@ else
 fi
 
 echo "🔧 Setting up .claude directory structure..."
-mkdir -p .claude/hooks .claude/agents .claude/commands
+mkdir -p .claude/agents .claude/commands
 
 echo "📋 Moving AI resources to final locations..."
-
-if [ -d ".ai-setup/hooks" ] && [ "$(ls -A .ai-setup/hooks/)" ]; then
-    cp -r .ai-setup/hooks/* .claude/hooks/
-    echo "✅ Hooks copied to .claude/hooks/"
-fi
 
 if [ -d ".ai-setup/agents" ] && [ "$(ls -A .ai-setup/agents/)" ]; then
     cp -r .ai-setup/agents/* .claude/agents/
@@ -94,9 +89,14 @@ if [ -d ".ai-setup/scripts" ]; then
     echo "✅ Scripts copied to scripts/"
 fi
 
-if [ -f ".ai-setup/ide/.claudeconfig" ]; then
-    cp .ai-setup/ide/.claudeconfig .
+if [ -f ".ai-setup/ide/claude/.claudeconfig" ]; then
+    cp .ai-setup/ide/claude/.claudeconfig .
     echo "✅ .claudeconfig copied to root directory"
+fi
+
+if [ -f ".ai-setup/ide/claude/settings.json" ]; then
+    cp .ai-setup/ide/claude/settings.json .claude/
+    echo "✅ settings.json copied to .claude directory"
 fi
 
 echo ""
@@ -162,10 +162,10 @@ echo "🎉 AI development setup complete!"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Review the contents of the .ai-setup folder"
-echo "  2. The .claude directory has been set up with hooks, agents, and commands"
+echo "  2. The .claude directory has been set up with agents, commands, and settings"
 echo "  3. Scripts have been copied to the scripts folder"
 echo "  4. AI rules have been synced to .cursor, .windsurf, and CLAUDE.md"
-echo "  5. Customize the rules, prompts, hooks, agents, and slash commands in .ai-setup"
+echo "  5. Customize the rules, prompts, agents, and slash commands in .ai-setup"
 echo "  6. If you set up a .devcontainer, rebuild your container"
 echo ""
 echo "💡 Tip: Consider committing these changes to your repository"
