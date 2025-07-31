@@ -1,24 +1,37 @@
 {
-  "postToolUse": [
-    {
-      "matcher": "Edit|MultiEdit|Write",
-      "hooks": [
-        {
-          "type": "command",
-          "command": ".ai-setup/scripts/lint-and-typecheck.sh $FILE_PATH"
-        }
-      ]
-    }
-  ],
-  "Stop": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "afplay /System/Library/Sounds/Glass.aiff"
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".ai-setup/scripts/lint-and-typecheck.sh $FILE_PATH"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff --volume 0.3"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Ping.aiff --volume 0.5"
+          }
+        ]
+      }
+    ]
+  }
 }
