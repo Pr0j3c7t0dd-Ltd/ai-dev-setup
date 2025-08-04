@@ -6,6 +6,20 @@ echo "🔊 PulseAudio Passthrough Setup for DevContainers"
 echo "================================================"
 echo ""
 
+# Check if we're in a git repository or have a .devcontainer directory
+if [ ! -d ".git" ] && [ ! -d ".devcontainer" ]; then
+    echo "⚠️  Error: This script must be run from your project's root directory"
+    echo "Please cd to your project directory and run this script again."
+    echo ""
+    echo "Example:"
+    echo "  cd /path/to/your/project"
+    echo "  bash $(realpath "$0")"
+    exit 1
+fi
+
+echo "📂 Working in: $(pwd)"
+echo ""
+
 # Check if running on macOS
 if [[ "$OSTYPE" != "darwin"* ]]; then
     echo "⚠️  Audio passthrough setup is currently only supported on macOS"
@@ -397,6 +411,34 @@ else
     echo "⚠️  No .devcontainer/devcontainer.json found. Please create one first."
 fi
 
+# Verify files were created
+echo ""
+echo "📋 Verifying setup files..."
+if [ -f ".devcontainer/install-audio.sh" ]; then
+    echo "✅ .devcontainer/install-audio.sh created"
+else
+    echo "❌ Failed to create .devcontainer/install-audio.sh"
+fi
+
+if [ -f ".devcontainer/audio-setup/afplay" ]; then
+    echo "✅ .devcontainer/audio-setup/afplay created"
+else
+    echo "❌ Failed to create .devcontainer/audio-setup/afplay"
+fi
+
+if [ -f ".devcontainer/devcontainer.json" ]; then
+    echo "✅ .devcontainer/devcontainer.json exists"
+    # Check if onCreateCommand was added
+    if grep -q "install-audio.sh" .devcontainer/devcontainer.json; then
+        echo "✅ Audio installation command added to devcontainer.json"
+    else
+        echo "⚠️  Audio installation command not found in devcontainer.json"
+    fi
+else
+    echo "❌ .devcontainer/devcontainer.json not found"
+fi
+
+echo ""
 echo "✅ Audio passthrough setup complete"
 echo ""
 echo "📝 PulseAudio daemon has been started with network audio support"
