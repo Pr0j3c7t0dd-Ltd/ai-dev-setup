@@ -38,6 +38,22 @@ The setup includes:
 - The `strict-code-linter` agent that reviews code for style violations, typos, and inconsistencies
 - Both are automatically copied to the correct `.claude` directory structure for immediate use
 
+## Audio Passthrough for DevContainers (macOS)
+
+If you're using a devcontainer and want audio passthrough support, you can run the dedicated PulseAudio setup script:
+
+```bash
+bash .ai-setup/scripts/setup-pulseaudio-passthrough.sh
+```
+
+This script will:
+- Install and configure PulseAudio on macOS with network audio support
+- Create audio tools installation scripts for the container
+- Configure your devcontainer.json for audio passthrough
+- Set up a universal `afplay` wrapper that works in both macOS and Linux environments
+
+**Note**: This is currently only supported on macOS hosts.
+
 ## Requirements
 
 - Git repository (the script must be run from a git repo root)
