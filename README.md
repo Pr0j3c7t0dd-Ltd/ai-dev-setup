@@ -34,9 +34,11 @@ The setup script will:
 ### Hooks and Agents Configuration
 
 The setup includes:
-- A `hooks.json` file that configures the strict-code-linter to automatically run after file updates
-- The `strict-code-linter` agent that reviews code for style violations, typos, and inconsistencies
-- Both are automatically copied to the correct `.claude` directory structure for immediate use
+- PostToolUse hooks that play sounds after Bash commands and run lint/typecheck on file edits
+- Notification hooks that play sounds for notifications
+- Stop and SubagentStop hooks that play sounds when operations complete
+- Custom agents in the `.ai-setup/agents` folder
+- All configurations are automatically set up in the `.claude` directory structure
 
 ## Audio Passthrough for DevContainers (macOS)
 
