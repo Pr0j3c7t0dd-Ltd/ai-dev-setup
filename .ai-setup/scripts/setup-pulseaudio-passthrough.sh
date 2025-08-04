@@ -122,14 +122,27 @@ mkdir -p .devcontainer/audio-setup
 cat > .devcontainer/audio-setup/install-audio-tools.sh << 'EOF'
 #!/bin/bash
 # Install audio tools in the container
-apt-get update && apt-get install -y \
-    pulseaudio-utils \
-    sox \
-    libsox-fmt-all \
-    mpg123 \
-    ffmpeg \
-    alsa-utils \
-    bc
+if [ "$EUID" -eq 0 ]; then
+    # Running as root
+    apt-get update && apt-get install -y \
+        pulseaudio-utils \
+        sox \
+        libsox-fmt-all \
+        mpg123 \
+        ffmpeg \
+        alsa-utils \
+        bc
+else
+    # Running as regular user, try sudo
+    sudo apt-get update && sudo apt-get install -y \
+        pulseaudio-utils \
+        sox \
+        libsox-fmt-all \
+        mpg123 \
+        ffmpeg \
+        alsa-utils \
+        bc
+fi
 EOF
 chmod +x .devcontainer/audio-setup/install-audio-tools.sh
 
@@ -253,17 +266,17 @@ try:
     with open(devcontainer_path, 'r') as f:
         config = json.load(f)
     
-    # Add or update postCreateCommand
-    post_create_cmd = "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/"
+    # Add or update postStartCommand to install audio tools
+    post_start_cmd = "if [ ! -f /usr/local/bin/afplay ]; then sudo bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && sudo cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && sudo chmod +x /usr/local/bin/afplay; fi"
     
-    if 'postCreateCommand' in config:
-        # If there's already a postCreateCommand, append to it
-        if isinstance(config['postCreateCommand'], str):
-            config['postCreateCommand'] = config['postCreateCommand'] + " && " + post_create_cmd
-        elif isinstance(config['postCreateCommand'], list):
-            config['postCreateCommand'].append(post_create_cmd)
+    if 'postStartCommand' in config:
+        # If there's already a postStartCommand, append to it
+        if isinstance(config['postStartCommand'], str):
+            config['postStartCommand'] = config['postStartCommand'] + " && " + post_start_cmd
+        elif isinstance(config['postStartCommand'], list):
+            config['postStartCommand'].append(post_start_cmd)
     else:
-        config['postCreateCommand'] = post_create_cmd
+        config['postStartCommand'] = post_start_cmd
     
     # Add or update runArgs
     pulse_env = ["--env", "PULSE_SERVER=host.docker.internal"]
@@ -311,7 +324,7 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"⚠️  Error updating devcontainer.json: {e}")
     print("Please manually add the following to your .devcontainer/devcontainer.json:")
-    print('  "postCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/",')
+    print('  "postStartCommand": "if [ ! -f /usr/local/bin/afplay ]; then sudo bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && sudo cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && sudo chmod +x /usr/local/bin/afplay; fi",')
     print('  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],')
 PYTHON_EOF
 
@@ -345,9 +358,12 @@ echo "    afplay .ai-setup/sounds/Hero.aiff --volume 0.3"
 echo ""
 echo "    # If afplay is not found, you have three options:"
 echo "    # Option 1: Run as root user from outside the container:"
-echo "    docker exec -u root CONTAINER_NAME bash -c \"apt-get update && apt-get install -y pulseaudio-utils sox libsox-fmt-all\""
-echo "    docker exec -u root CONTAINER_NAME cp /workspaces/ai-dev-setup/.devcontainer/audio-setup/afplay /usr/local/bin/"
-echo "    docker exec -u root CONTAINER_NAME chmod +x /usr/local/bin/afplay"
+echo "    # First, find your container name/ID:"
+echo "    docker ps  # Look for your devcontainer"
+echo "    # Then run (replace CONTAINER_ID with actual ID from docker ps):"
+echo "    docker exec -u root CONTAINER_ID bash -c \"apt-get update && apt-get install -y pulseaudio-utils sox libsox-fmt-all bc\""
+echo "    docker exec -u root CONTAINER_ID cp /workspace/.devcontainer/audio-setup/afplay /usr/local/bin/"
+echo "    docker exec -u root CONTAINER_ID chmod +x /usr/local/bin/afplay"
 echo ""
 echo "    # Option 2: If you have passwordless sudo in the container:"
 echo "    sudo bash .devcontainer/audio-setup/install-audio-tools.sh"
