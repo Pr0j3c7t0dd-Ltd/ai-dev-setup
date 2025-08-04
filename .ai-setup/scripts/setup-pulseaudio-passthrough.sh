@@ -118,6 +118,78 @@ fi
 echo "📝 Creating audio configuration scripts..."
 mkdir -p .devcontainer/audio-setup
 
+# Also create a simple inline installation approach for compatibility
+echo "📝 Creating inline audio installer..."
+cat > .devcontainer/install-audio.sh << 'EOF'
+#!/bin/bash
+# Direct audio tools installation
+echo "Installing audio tools..."
+apt-get update && apt-get install -y \
+    pulseaudio-utils \
+    sox \
+    libsox-fmt-all \
+    mpg123 \
+    ffmpeg \
+    alsa-utils \
+    bc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create afplay wrapper inline
+cat > /usr/local/bin/afplay << 'AFPLAY_EOF'
+#!/bin/bash
+# Universal afplay wrapper - works on macOS and Linux
+if [ $# -eq 0 ]; then
+    echo "Usage: afplay <audiofile> [options]"
+    exit 1
+fi
+
+# Linux/container environment
+FILE=""
+VOLUME=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --volume|-v)
+            VOLUME="$2"
+            shift 2
+            ;;
+        *)
+            if [ -z "$FILE" ]; then
+                FILE="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
+    echo "Error: Audio file not found: $FILE"
+    exit 1
+fi
+
+# Try paplay first for AIFF/WAV
+if command -v paplay &> /dev/null; then
+    if [ -n "$VOLUME" ]; then
+        paplay --volume=$(echo "$VOLUME * 65536" | bc | cut -d. -f1) "$FILE" 2>/dev/null
+    else
+        paplay "$FILE" 2>/dev/null
+    fi
+elif command -v play &> /dev/null; then
+    if [ -n "$VOLUME" ]; then
+        play -v "$VOLUME" "$FILE" 2>/dev/null
+    else
+        play "$FILE" 2>/dev/null
+    fi
+else
+    echo "Error: No audio player found"
+    exit 1
+fi
+AFPLAY_EOF
+
+chmod +x /usr/local/bin/afplay
+echo "Audio tools installation complete!"
+EOF
+chmod +x .devcontainer/install-audio.sh
+
 # Create the install-audio-tools.sh script
 cat > .devcontainer/audio-setup/install-audio-tools.sh << 'EOF'
 #!/bin/bash
@@ -257,7 +329,7 @@ try:
         config = json.load(f)
     
     # Add or update onCreateCommand to install audio tools (runs as root)
-    on_create_cmd = "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && chmod +x /usr/local/bin/afplay"
+    on_create_cmd = "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/install-audio.sh"
     
     if 'onCreateCommand' in config:
         # If there's already an onCreateCommand, append to it
@@ -314,7 +386,7 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"⚠️  Error updating devcontainer.json: {e}")
     print("Please manually add the following to your .devcontainer/devcontainer.json:")
-    print('  "onCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && chmod +x /usr/local/bin/afplay",')
+    print('  "onCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/install-audio.sh",')
     print('  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],')
 PYTHON_EOF
 
