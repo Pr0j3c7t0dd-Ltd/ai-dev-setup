@@ -122,27 +122,17 @@ mkdir -p .devcontainer/audio-setup
 cat > .devcontainer/audio-setup/install-audio-tools.sh << 'EOF'
 #!/bin/bash
 # Install audio tools in the container
-if [ "$EUID" -eq 0 ]; then
-    # Running as root
-    apt-get update && apt-get install -y \
-        pulseaudio-utils \
-        sox \
-        libsox-fmt-all \
-        mpg123 \
-        ffmpeg \
-        alsa-utils \
-        bc
-else
-    # Running as regular user, try sudo
-    sudo apt-get update && sudo apt-get install -y \
-        pulseaudio-utils \
-        sox \
-        libsox-fmt-all \
-        mpg123 \
-        ffmpeg \
-        alsa-utils \
-        bc
-fi
+# This script is designed to run as root during container creation
+
+apt-get update && apt-get install -y \
+    pulseaudio-utils \
+    sox \
+    libsox-fmt-all \
+    mpg123 \
+    ffmpeg \
+    alsa-utils \
+    bc \
+    && rm -rf /var/lib/apt/lists/*
 EOF
 chmod +x .devcontainer/audio-setup/install-audio-tools.sh
 
@@ -266,17 +256,17 @@ try:
     with open(devcontainer_path, 'r') as f:
         config = json.load(f)
     
-    # Add or update postStartCommand to install audio tools
-    post_start_cmd = "if [ ! -f /usr/local/bin/afplay ]; then sudo bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && sudo cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && sudo chmod +x /usr/local/bin/afplay; fi"
+    # Add or update onCreateCommand to install audio tools (runs as root)
+    on_create_cmd = "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && chmod +x /usr/local/bin/afplay"
     
-    if 'postStartCommand' in config:
-        # If there's already a postStartCommand, append to it
-        if isinstance(config['postStartCommand'], str):
-            config['postStartCommand'] = config['postStartCommand'] + " && " + post_start_cmd
-        elif isinstance(config['postStartCommand'], list):
-            config['postStartCommand'].append(post_start_cmd)
+    if 'onCreateCommand' in config:
+        # If there's already an onCreateCommand, append to it
+        if isinstance(config['onCreateCommand'], str):
+            config['onCreateCommand'] = config['onCreateCommand'] + " && " + on_create_cmd
+        elif isinstance(config['onCreateCommand'], list):
+            config['onCreateCommand'].append(on_create_cmd)
     else:
-        config['postStartCommand'] = post_start_cmd
+        config['onCreateCommand'] = on_create_cmd
     
     # Add or update runArgs
     pulse_env = ["--env", "PULSE_SERVER=host.docker.internal"]
@@ -324,7 +314,7 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"⚠️  Error updating devcontainer.json: {e}")
     print("Please manually add the following to your .devcontainer/devcontainer.json:")
-    print('  "postStartCommand": "if [ ! -f /usr/local/bin/afplay ]; then sudo bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && sudo cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && sudo chmod +x /usr/local/bin/afplay; fi",')
+    print('  "onCreateCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/install-audio-tools.sh && cp /workspaces/${localWorkspaceFolderBasename}/.devcontainer/audio-setup/afplay /usr/local/bin/ && chmod +x /usr/local/bin/afplay",')
     print('  "runArgs": ["--env", "PULSE_SERVER=host.docker.internal"],')
 PYTHON_EOF
 
